@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>股票資產 Dashboard</title>
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --bg: #f6f7f4;
+      --text: #17202a;
+      --muted: #667085;
+      --line: #dfe5dc;
+      --panel: #ffffff;
+      --positive: #0f766e;
+      --negative: #c2410c;
+      --accent: #1d4ed8;
+      --gold: #b7791f;
+      --violet: #7c3aed;
+    }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Microsoft JhengHei", "Noto Sans TC", system-ui, sans-serif;
+    }
+    main {
+      width: min(1120px, 100%);
+      margin: 0 auto;
+      padding: 18px 14px 34px;
+    }
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: end;
+      margin-bottom: 14px;
+    }
+    h1 {
+      margin: 0 0 5px;
+      font-size: 26px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+    .sub {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+    select,
+    button {
+      height: 40px;
+      border-radius: 8px;
+      font: inherit;
+    }
+    select {
+      min-width: 112px;
+      border: 1px solid var(--line);
+      background: white;
+      padding: 0 10px;
+      color: var(--text);
+    }
+    button {
+      border: 0;
+      background: var(--accent);
+      color: white;
+      padding: 0 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:disabled {
+      cursor: wait;
+      opacity: 0.7;
+    }
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      box-shadow: 0 10px 24px rgba(23, 32, 42, 0.07);
+    }
+    .label {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .value {
+      margin-top: 8px;
+      font-size: 24px;
+      line-height: 1.18;
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+    .value small {
+      display: block;
+      margin-top: 4px;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .positive { color: var(--positive); }
+    .negative { color: var(--negative); }
+    section { margin-top: 10px; }
+    .chart {
+      width: 100%;
+      height: 300px;
+      display: block;
+    }
+    .split {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 10px;
+    }
+    .legend {
+      display: grid;
+      gap: 8px;
+      align-content: start;
+    }
+    .legend-item {
+      display: grid;
+      grid-template-columns: 12px 1fr auto;
+      gap: 8px;
+      align-items: center;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+    }
+    .table-wrap {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th,
+    td {
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--line);
+      text-align: right;
+      white-space: nowrap;
+    }
+    th:first-child,
+    td:first-child,
+    th:nth-child(2),
+    td:nth-child(2) {
+      text-align: left;
+    }
+    th {
+      color: var(--muted);
+      background: #fafbf8;
+      font-weight: 700;
+    }
+    .empty,
+    .error {
+      color: var(--muted);
+      line-height: 1.6;
+      text-align: center;
+      padding: 24px 8px;
+    }
+    .error {
+      color: #b42318;
+      text-align: left;
+      white-space: pre-wrap;
+    }
+    .warning {
+      margin-top: 10px;
+      color: #92400e;
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    @media (max-width: 860px) {
+      header {
+        grid-template-columns: 1fr;
+      }
+      .toolbar {
+        justify-content: stretch;
+      }
+      select,
+      button {
+        flex: 1 1 120px;
+      }
+      .kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .split {
+        grid-template-columns: 1fr;
+      }
+      .chart {
+        height: 260px;
+      }
+    }
+    @media (max-width: 460px) {
+      main {
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+      h1 {
+        font-size: 23px;
+      }
+      .value {
+        font-size: 20px;
+      }
+      th,
+      td {
+        padding: 9px 6px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>股票資產 Dashboard</h1>
+        <p class="sub" id="subtitle">讀取中</p>
+      </div>
+      <div class="toolbar">
+        <select id="rangeSelect" aria-label="趨勢區間">
+          <option value="30">30 日</option>
+          <option value="90" selected>90 日</option>
+          <option value="180">180 日</option>
+          <option value="365">365 日</option>
+        </select>
+        <button id="refreshButton">刷新</button>
+      </div>
+    </header>
+
+    <div class="kpis">
+      <div class="card"><div class="label">總市值</div><div class="value" id="marketValue">0 元</div></div>
+      <div class="card"><div class="label">總成本</div><div class="value" id="totalCost">0 元</div></div>
+      <div class="card"><div class="label">未實現損益</div><div class="value" id="profitLoss">0 元</div></div>
+      <div class="card"><div class="label">總損益率</div><div class="value" id="profitPercent">0%</div></div>
+    </div>
+
+    <section class="card">
+      <div class="split">
+        <canvas class="chart" id="trendChart"></canvas>
+        <div>
+          <div class="label">趨勢線</div>
+          <div class="legend" id="legend"></div>
+          <div class="warning" id="warning" hidden></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="label">持股明細</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>代號</th>
+              <th>名稱</th>
+              <th>股數</th>
+              <th>均價</th>
+              <th>最新價</th>
+              <th>成本</th>
+              <th>市值</th>
+              <th>損益</th>
+              <th>損益率</th>
+            </tr>
+          </thead>
+          <tbody id="positionRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="label">近期投資紀錄</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>日期</th>
+              <th>標的</th>
+              <th>動作</th>
+              <th>金額</th>
+              <th>股數</th>
+              <th>價格</th>
+            </tr>
+          </thead>
+          <tbody id="recordRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card error" id="error" hidden></section>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const project = params.get("project") || "";
+    const user = params.get("user") || "";
+    const token = params.get("token") || "";
+    const colors = ["#1D4ED8", "#0F766E", "#B7791F", "#7C3AED", "#C2410C", "#0891B2"];
+    let latestPayload = null;
+
+    function money(value) {
+      if (value === null || value === undefined) return "無資料";
+      return `${Number(value || 0).toLocaleString()} 元`;
+    }
+    function numberText(value, digits = 2) {
+      if (value === null || value === undefined) return "無資料";
+      return Number(value).toLocaleString(undefined, { maximumFractionDigits: digits });
+    }
+    function percent(value) {
+      if (value === null || value === undefined) return "無資料";
+      return `${Number(value).toLocaleString(undefined, { maximumFractionDigits: 2 })}%`;
+    }
+    function displayDate(isoDate) {
+      if (!isoDate) return "無資料";
+      const [year, month, day] = isoDate.split("-").map(Number);
+      return `${year}/${month}/${day}`;
+    }
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+    function classFor(value) {
+      const numeric = Number(value || 0);
+      if (numeric > 0) return "positive";
+      if (numeric < 0) return "negative";
+      return "";
+    }
+    function apiUrl(range) {
+      const query = new URLSearchParams({ user, token, format: "json", range });
+      return `https://${project}.supabase.co/functions/v1/stock-dashboard?${query}`;
+    }
+    function setError(message) {
+      const el = document.getElementById("error");
+      el.hidden = !message;
+      el.textContent = message || "";
+    }
+    function setLoading(isLoading) {
+      const button = document.getElementById("refreshButton");
+      button.disabled = isLoading;
+      button.textContent = isLoading ? "讀取中" : "刷新";
+    }
+    async function loadDashboard() {
+      setError("");
+      if (!project || !user || !token) {
+        setError("URL 缺少 project、user 或 token 參數。");
+        return;
+      }
+      const range = document.getElementById("rangeSelect").value;
+      const controller = new AbortController();
+      const timeoutId = window.setTimeout(() => controller.abort(), 15000);
+      setLoading(true);
+      try {
+        const response = await fetch(apiUrl(range), { cache: "no-store", signal: controller.signal });
+        const text = await response.text();
+        if (!response.ok) {
+          setError(`${text}\n\nAPI：${apiUrl(range)}`);
+          return;
+        }
+        latestPayload = JSON.parse(text);
+        render(latestPayload);
+      } catch (error) {
+        const reason = error && error.name === "AbortError"
+          ? "讀取超過 15 秒，請稍後再試。"
+          : "讀取 Supabase API 失敗，請確認 Edge Function 與 CORS 設定。";
+        setError(`${reason}\n\nAPI：${apiUrl(range)}`);
+      } finally {
+        window.clearTimeout(timeoutId);
+        setLoading(false);
+      }
+    }
+    function render(payload) {
+      const summary = payload.summary || {};
+      const positions = payload.positions || [];
+      const records = payload.investment_records || [];
+      const generatedAt = payload.generated_at ? new Date(payload.generated_at).toLocaleString() : "無資料";
+      document.getElementById("subtitle").textContent = `最新報價日 ${displayDate(summary.latest_quote_date)}，更新時間 ${generatedAt}`;
+      document.getElementById("marketValue").textContent = money(summary.total_market_value);
+      document.getElementById("totalCost").textContent = money(summary.total_cost);
+      document.getElementById("profitLoss").textContent = money(summary.total_profit_loss);
+      document.getElementById("profitLoss").className = `value ${classFor(summary.total_profit_loss)}`;
+      document.getElementById("profitPercent").textContent = percent(summary.total_profit_loss_percent);
+      document.getElementById("profitPercent").className = `value ${classFor(summary.total_profit_loss_percent)}`;
+
+      const warning = document.getElementById("warning");
+      const warnings = summary.warnings || [];
+      warning.hidden = warnings.length === 0;
+      warning.textContent = warnings.join("\n");
+
+      document.getElementById("positionRows").innerHTML = positions.length
+        ? positions.map((row) => `
+          <tr>
+            <td><strong>${escapeHtml(row.symbol)}</strong></td>
+            <td>${escapeHtml(row.display_name || row.symbol)}</td>
+            <td>${numberText(row.shares, 3)}</td>
+            <td>${numberText(row.average_cost, 2)}</td>
+            <td>${numberText(row.latest_close, 2)}<br><small>${displayDate(row.latest_date)}</small></td>
+            <td>${money(row.cost)}</td>
+            <td>${money(row.market_value)}</td>
+            <td class="${classFor(row.profit_loss)}"><strong>${money(row.profit_loss)}</strong></td>
+            <td class="${classFor(row.profit_loss_percent)}"><strong>${percent(row.profit_loss_percent)}</strong></td>
+          </tr>
+        `).join("")
+        : `<tr><td colspan="9" class="empty">目前沒有持股資料</td></tr>`;
+
+      document.getElementById("recordRows").innerHTML = records.length
+        ? records.map((row) => `
+          <tr>
+            <td>${displayDate(row.record_date)}</td>
+            <td>${escapeHtml(row.asset)}</td>
+            <td>${escapeHtml(row.action)}</td>
+            <td><strong>${money(row.amount)}</strong></td>
+            <td>${numberText(row.quantity, 3)}</td>
+            <td>${numberText(row.price, 2)}</td>
+          </tr>
+        `).join("")
+        : `<tr><td colspan="6" class="empty">這個區間沒有投資紀錄</td></tr>`;
+
+      renderLegend(positions);
+      drawTrend(payload);
+    }
+    function renderLegend(positions) {
+      const rows = [
+        { label: "總市值", color: "#17202A", value: "" },
+        ...positions.map((position, index) => ({
+          label: position.display_name || position.symbol,
+          color: colors[index % colors.length],
+          value: money(position.market_value),
+        })),
+      ];
+      document.getElementById("legend").innerHTML = rows.map((item) => `
+        <div class="legend-item">
+          <span class="dot" style="background:${item.color}"></span>
+          <span>${escapeHtml(item.label)}</span>
+          <strong>${escapeHtml(item.value)}</strong>
+        </div>
+      `).join("");
+    }
+    function drawTrend(payload) {
+      const canvas = document.getElementById("trendChart");
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+      canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+      const ctx = canvas.getContext("2d");
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const width = rect.width;
+      const height = rect.height;
+      ctx.clearRect(0, 0, width, height);
+
+      const dates = payload.trend?.dates || [];
+      const total = (payload.trend?.total_market_value || []).map((point) => point.value);
+      const bySymbol = payload.trend?.by_symbol || {};
+      const series = [
+        { name: "total", values: total, color: "#17202A", width: 3 },
+        ...Object.entries(bySymbol).map(([symbol, values], index) => ({
+          name: symbol,
+          values,
+          color: colors[index % colors.length],
+          width: 1.8,
+        })),
+      ];
+      const values = series.flatMap((item) => item.values).filter((value) => value !== null && value !== undefined).map(Number);
+      if (!dates.length || !values.length) {
+        ctx.fillStyle = "#667085";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = "14px Microsoft JhengHei, sans-serif";
+        ctx.fillText("沒有足夠資料可繪製趨勢線", width / 2, height / 2);
+        return;
+      }
+
+      const pad = { left: 64, right: 18, top: 18, bottom: 34 };
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      const span = Math.max(max - min, 1);
+      const plotW = width - pad.left - pad.right;
+      const plotH = height - pad.top - pad.bottom;
+      const xFor = (index) => pad.left + (dates.length === 1 ? 0 : (plotW * index) / (dates.length - 1));
+      const yFor = (value) => pad.top + plotH - ((value - min) / span) * plotH;
+
+      ctx.strokeStyle = "#e5e7eb";
+      ctx.lineWidth = 1;
+      ctx.fillStyle = "#667085";
+      ctx.font = "12px Microsoft JhengHei, sans-serif";
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      for (let i = 0; i <= 3; i += 1) {
+        const value = min + (span * i) / 3;
+        const y = yFor(value);
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(width - pad.right, y);
+        ctx.stroke();
+        ctx.fillText(Math.round(value).toLocaleString(), pad.left - 8, y);
+      }
+
+      for (const item of series) {
+        ctx.strokeStyle = item.color;
+        ctx.lineWidth = item.width;
+        ctx.beginPath();
+        let started = false;
+        item.values.forEach((value, index) => {
+          if (value === null || value === undefined) return;
+          const x = xFor(index);
+          const y = yFor(Number(value));
+          if (!started) {
+            ctx.moveTo(x, y);
+            started = true;
+          } else {
+            ctx.lineTo(x, y);
+          }
+        });
+        ctx.stroke();
+      }
+
+      ctx.fillStyle = "#667085";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "top";
+      ctx.fillText(displayDate(dates[0]), pad.left, height - 22);
+      ctx.textAlign = "right";
+      ctx.fillText(displayDate(dates[dates.length - 1]), width - pad.right, height - 22);
+    }
+
+    document.getElementById("refreshButton").addEventListener("click", loadDashboard);
+    document.getElementById("rangeSelect").addEventListener("change", loadDashboard);
+    window.addEventListener("resize", () => {
+      if (latestPayload) drawTrend(latestPayload);
+    });
+    loadDashboard();
+  </script>
+</body>
+</html>
