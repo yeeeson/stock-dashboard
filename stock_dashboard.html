@@ -294,6 +294,7 @@
             <tr>
               <th>日期</th>
               <th>標的</th>
+              <th>名稱</th>
               <th>動作</th>
               <th>成本</th>
               <th>股數</th>
@@ -429,13 +430,14 @@
           <tr>
             <td>${displayDate(row.record_date)}</td>
             <td>${escapeHtml(row.asset)}</td>
+            <td>${escapeHtml(row.display_name || "")}</td>
             <td>${escapeHtml(row.action)}</td>
             <td><strong>${money(row.cost ?? row.amount)}</strong></td>
             <td>${numberText(row.quantity, 3)}</td>
             <td>${numberText(row.average_price ?? row.price, 2)}</td>
           </tr>
         `).join("")
-        : `<tr><td colspan="6" class="empty">這個區間沒有投資紀錄</td></tr>`;
+        : `<tr><td colspan="7" class="empty">這個區間沒有投資紀錄</td></tr>`;
 
       renderLegend(positions);
       drawTrend(payload);
@@ -472,11 +474,12 @@
       const dates = payload.trend?.dates || [];
       const total = (payload.trend?.total_market_value || []).map((point) => point.value);
       const bySymbol = payload.trend?.by_symbol || {};
+      const positions = payload.positions || [];
       const series = [
         { name: "total", values: total, color: "#17202A", width: 3 },
-        ...Object.entries(bySymbol).map(([symbol, values], index) => ({
-          name: symbol,
-          values,
+        ...positions.map((position, index) => ({
+          name: position.symbol,
+          values: bySymbol[position.symbol] || [],
           color: colors[index % colors.length],
           width: 1.8,
         })),
