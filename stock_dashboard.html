@@ -295,7 +295,7 @@
               <th>日期</th>
               <th>標的</th>
               <th>動作</th>
-              <th>金額</th>
+              <th>成本</th>
               <th>股數</th>
               <th>價格</th>
             </tr>
@@ -430,7 +430,7 @@
             <td>${displayDate(row.record_date)}</td>
             <td>${escapeHtml(row.asset)}</td>
             <td>${escapeHtml(row.action)}</td>
-            <td><strong>${money(row.amount)}</strong></td>
+            <td><strong>${money(row.cost ?? row.amount)}</strong></td>
             <td>${numberText(row.quantity, 3)}</td>
             <td>${numberText(row.price, 2)}</td>
           </tr>
