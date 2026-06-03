@@ -167,6 +167,21 @@
       background: #fafbf8;
       font-weight: 700;
     }
+    .news-title-cell {
+      min-width: 280px;
+      max-width: 520px;
+      text-align: left;
+      white-space: normal;
+      line-height: 1.45;
+    }
+    .news-link {
+      color: var(--accent);
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .news-link:hover {
+      text-decoration: underline;
+    }
     .empty,
     .error {
       color: var(--muted);
@@ -306,6 +321,24 @@
       </div>
     </section>
 
+    <section class="card">
+      <div class="label">持股最新新聞</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>時間</th>
+              <th>代號</th>
+              <th>名稱</th>
+              <th class="news-title-cell">標題</th>
+              <th>來源</th>
+            </tr>
+          </thead>
+          <tbody id="newsRows"></tbody>
+        </table>
+      </div>
+    </section>
+
     <section class="card error" id="error" hidden></section>
   </main>
 
@@ -334,6 +367,13 @@
       const [year, month, day] = isoDate.split("-").map(Number);
       return `${year}/${month}/${day}`;
     }
+    function displayDateTime(value) {
+      if (!value) return "無資料";
+      const text = String(value).replace("T", " ");
+      const date = displayDate(text.slice(0, 10));
+      const time = text.slice(11, 16);
+      return time ? `${date} ${time}` : date;
+    }
     function escapeHtml(value) {
       return String(value ?? "")
         .replaceAll("&", "&amp;")
@@ -341,6 +381,20 @@
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#39;");
+    }
+    function safeUrl(value) {
+      try {
+        const url = new URL(String(value || ""));
+        return url.protocol === "http:" || url.protocol === "https:" ? url.href : "";
+      } catch {
+        return "";
+      }
+    }
+    function newsTitle(row) {
+      const title = escapeHtml(row.title || "未命名新聞");
+      const link = safeUrl(row.link);
+      if (!link) return title;
+      return `<a class="news-link" href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">${title}</a>`;
     }
     function classFor(value) {
       const numeric = Number(value || 0);
@@ -395,6 +449,7 @@
       const summary = payload.summary || {};
       const positions = payload.positions || [];
       const records = payload.investment_records || [];
+      const news = payload.news || [];
       const generatedAt = payload.generated_at ? new Date(payload.generated_at).toLocaleString() : "無資料";
       document.getElementById("subtitle").textContent = `最新報價日 ${displayDate(summary.latest_quote_date)}，更新時間 ${generatedAt}`;
       document.getElementById("marketValue").textContent = money(summary.total_market_value);
@@ -438,6 +493,18 @@
           </tr>
         `).join("")
         : `<tr><td colspan="7" class="empty">這個區間沒有投資紀錄</td></tr>`;
+
+      document.getElementById("newsRows").innerHTML = news.length
+        ? news.map((row) => `
+          <tr>
+            <td>${displayDateTime(row.date)}</td>
+            <td>${escapeHtml(row.symbol)}</td>
+            <td>${escapeHtml(row.display_name || "")}</td>
+            <td class="news-title-cell">${newsTitle(row)}</td>
+            <td>${escapeHtml(row.source || "")}</td>
+          </tr>
+        `).join("")
+        : `<tr><td colspan="5" class="empty">最近沒有找到持股相關新聞</td></tr>`;
 
       renderLegend(positions);
       drawTrend(payload);
