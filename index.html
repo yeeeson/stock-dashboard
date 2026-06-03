@@ -118,6 +118,22 @@
       height: 300px;
       display: block;
     }
+    .chart-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .secondary-button {
+      height: 34px;
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--text);
+      padding: 0 12px;
+      font-size: 13px;
+      font-weight: 700;
+    }
     .split {
       display: grid;
       grid-template-columns: minmax(0, 1fr) 320px;
@@ -181,6 +197,56 @@
     }
     .news-link:hover {
       text-decoration: underline;
+    }
+    .external-link {
+      color: var(--accent);
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .external-link:hover {
+      text-decoration: underline;
+    }
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 10px;
+      background: rgba(23, 32, 42, 0.82);
+      padding: 14px;
+    }
+    .modal[hidden] {
+      display: none;
+    }
+    .modal-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      color: white;
+    }
+    .modal-title {
+      font-weight: 800;
+      line-height: 1.4;
+    }
+    .modal-close {
+      background: white;
+      color: var(--text);
+      border: 0;
+      height: 36px;
+    }
+    .modal-canvas-wrap {
+      min-height: 0;
+      background: white;
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .expanded-chart {
+      width: 100%;
+      height: calc(100vh - 104px);
+      min-height: 360px;
+      display: block;
     }
     .empty,
     .error {
@@ -269,10 +335,13 @@
     </div>
 
     <section class="card">
+      <div class="chart-head">
+        <div class="label">趨勢線</div>
+        <button class="secondary-button" id="expandTrendButton" type="button">放大</button>
+      </div>
       <div class="split">
         <canvas class="chart" id="trendChart"></canvas>
         <div>
-          <div class="label">趨勢線</div>
           <div class="legend" id="legend"></div>
           <div class="warning" id="warning" hidden></div>
         </div>
@@ -342,6 +411,16 @@
     <section class="card error" id="error" hidden></section>
   </main>
 
+  <div class="modal" id="trendModal" hidden role="dialog" aria-modal="true" aria-labelledby="trendModalTitle">
+    <div class="modal-bar">
+      <div class="modal-title" id="trendModalTitle">趨勢線放大檢視</div>
+      <button class="modal-close" id="closeTrendButton" type="button">關閉</button>
+    </div>
+    <div class="modal-canvas-wrap">
+      <canvas class="expanded-chart" id="expandedTrendChart"></canvas>
+    </div>
+  </div>
+
   <script>
     const params = new URLSearchParams(location.search);
     const project = params.get("project") || "";
@@ -395,6 +474,14 @@
       const link = safeUrl(row.link);
       if (!link) return title;
       return `<a class="news-link" href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">${title}</a>`;
+    }
+    function moneyDjUrl(symbol) {
+      return `https://5850web.moneydj.com/z/zc/zcw/zcw1_${encodeURIComponent(symbol)}.djhtm`;
+    }
+    function stockNameLink(row) {
+      const name = escapeHtml(row.display_name || row.symbol);
+      const url = moneyDjUrl(row.symbol);
+      return `<a class="external-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${name}</a>`;
     }
     function classFor(value) {
       const numeric = Number(value || 0);
@@ -468,7 +555,7 @@
         ? positions.map((row) => `
           <tr>
             <td><strong>${escapeHtml(row.symbol)}</strong></td>
-            <td>${escapeHtml(row.display_name || row.symbol)}</td>
+            <td>${stockNameLink(row)}</td>
             <td>${numberText(row.shares, 3)}</td>
             <td>${numberText(row.average_cost, 2)}</td>
             <td>${numberText(row.latest_close, 2)}<br><small>${displayDate(row.latest_date)}</small></td>
@@ -526,8 +613,8 @@
         </div>
       `).join("");
     }
-    function drawTrend(payload) {
-      const canvas = document.getElementById("trendChart");
+    function drawTrend(payload, canvasId = "trendChart") {
+      const canvas = document.getElementById(canvasId);
       const rect = canvas.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
       canvas.width = Math.max(1, Math.floor(rect.width * dpr));
@@ -613,10 +700,36 @@
       ctx.fillText(displayDate(dates[dates.length - 1]), width - pad.right, height - 22);
     }
 
+    function openTrendModal() {
+      const modal = document.getElementById("trendModal");
+      modal.hidden = false;
+      document.body.style.overflow = "hidden";
+      requestAnimationFrame(() => {
+        if (latestPayload) drawTrend(latestPayload, "expandedTrendChart");
+      });
+    }
+
+    function closeTrendModal() {
+      const modal = document.getElementById("trendModal");
+      modal.hidden = true;
+      document.body.style.overflow = "";
+    }
+
     document.getElementById("refreshButton").addEventListener("click", loadDashboard);
     document.getElementById("rangeSelect").addEventListener("change", loadDashboard);
+    document.getElementById("expandTrendButton").addEventListener("click", openTrendModal);
+    document.getElementById("closeTrendButton").addEventListener("click", closeTrendModal);
+    document.getElementById("trendModal").addEventListener("click", (event) => {
+      if (event.target.id === "trendModal") closeTrendModal();
+    });
+    window.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !document.getElementById("trendModal").hidden) closeTrendModal();
+    });
     window.addEventListener("resize", () => {
-      if (latestPayload) drawTrend(latestPayload);
+      if (latestPayload) {
+        drawTrend(latestPayload);
+        if (!document.getElementById("trendModal").hidden) drawTrend(latestPayload, "expandedTrendChart");
+      }
     });
     loadDashboard();
   </script>
