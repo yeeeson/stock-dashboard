@@ -517,6 +517,10 @@
     const token = params.get("token") || "";
     const colors = ["#1D4ED8", "#0F766E", "#B7791F", "#7C3AED", "#C2410C", "#0891B2"];
     let latestPayload = null;
+    const trendHoverState = {
+      trendChart: null,
+      expandedTrendChart: null,
+    };
 
     function money(value) {
       if (value === null || value === undefined) return "無資料";
@@ -628,6 +632,8 @@
       }
     }
     function render(payload) {
+      trendHoverState.trendChart = null;
+      trendHoverState.expandedTrendChart = null;
       const summary = payload.summary || {};
       const positions = payload.positions || [];
       const records = payload.investment_records || [];
@@ -741,6 +747,38 @@
       document.getElementById("legend").innerHTML = html;
       document.getElementById("expandedLegend").innerHTML = html;
     }
+    function drawMarkerTooltip(ctx, markerPoint, width, height, pad) {
+      const label = `均價 ${numberText(markerPoint.price, 2)}`;
+      ctx.font = "12px Microsoft JhengHei, sans-serif";
+      const labelWidth = ctx.measureText(label).width;
+      const labelPadX = 7;
+      const labelHeight = 24;
+      let boxX = markerPoint.x + 10;
+      let boxY = markerPoint.y - labelHeight - 10;
+      if (boxX + labelWidth + labelPadX * 2 > width - pad.right) {
+        boxX = markerPoint.x - labelWidth - labelPadX * 2 - 10;
+      }
+      if (boxX < pad.left) boxX = pad.left;
+      if (boxY < pad.top) boxY = markerPoint.y + 10;
+      if (boxY + labelHeight > height - pad.bottom) boxY = height - pad.bottom - labelHeight;
+
+      ctx.fillStyle = "rgba(23, 32, 42, 0.9)";
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      if (typeof ctx.roundRect === "function") {
+        ctx.roundRect(boxX, boxY, labelWidth + labelPadX * 2, labelHeight, 6);
+      } else {
+        ctx.rect(boxX, boxY, labelWidth + labelPadX * 2, labelHeight);
+      }
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = "#ffffff";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.fillText(label, boxX + labelPadX, boxY + labelHeight / 2);
+    }
+
     function drawTrend(payload, canvasId = "trendChart") {
       const canvas = document.getElementById(canvasId);
       const rect = canvas.getBoundingClientRect();
@@ -758,6 +796,7 @@
       const bySymbol = payload.trend?.by_symbol || {};
       const markersBySymbol = payload.trend?.markers_by_symbol || {};
       const positions = payload.positions || [];
+      const hover = trendHoverState[canvasId];
       const series = [
         { name: "total", values: total, color: "#17202A", width: 3 },
         ...positions.map((position, index) => ({
@@ -824,12 +863,10 @@
       positions.forEach((position, positionIndex) => {
         const markers = markersBySymbol[position.symbol] || [];
         const valuesForSymbol = bySymbol[position.symbol] || [];
-        ctx.fillStyle = colors[positionIndex % colors.length];
+        const markerColor = colors[positionIndex % colors.length];
+        ctx.fillStyle = markerColor;
         ctx.strokeStyle = "#ffffff";
         ctx.lineWidth = 2;
-        ctx.font = "12px Microsoft JhengHei, sans-serif";
-        ctx.textAlign = "left";
-        ctx.textBaseline = "bottom";
         for (const marker of markers) {
           const index = dates.indexOf(marker.date);
           if (index < 0) continue;
@@ -841,45 +878,9 @@
           ctx.arc(x, y, 5, 0, Math.PI * 2);
           ctx.fill();
           ctx.stroke();
-          const label = numberText(marker.price, 2);
-          const markerColor = colors[positionIndex % colors.length];
-          const labelWidth = ctx.measureText(label).width;
-          let labelX = x + 7;
-          let labelY = y - 6;
-          let textAlign = "left";
-          let textBaseline = "bottom";
-          if (labelX + labelWidth > width - pad.right) {
-            labelX = x - 7;
-            textAlign = "right";
+          if (hover && hover.symbol === position.symbol && hover.date === marker.date) {
+            drawMarkerTooltip(ctx, { x, y, price: marker.price }, width, height, pad);
           }
-          if (textAlign === "right" && labelX - labelWidth < pad.left) {
-            labelX = pad.left + labelWidth;
-          } else if (textAlign === "left" && labelX < pad.left) {
-            labelX = pad.left;
-          }
-          if (labelY - 14 < pad.top) {
-            labelY = y + 16;
-            textBaseline = "top";
-          }
-          if (labelY + 14 > height - pad.bottom) {
-            labelY = y - 10;
-            textBaseline = "bottom";
-          }
-          const labelPadX = 4;
-          const labelHeight = 15;
-          const boxX = textAlign === "right" ? labelX - labelWidth - labelPadX : labelX - labelPadX;
-          const boxY = textBaseline === "top" ? labelY - 2 : labelY - labelHeight + 2;
-          ctx.fillStyle = "rgba(255, 255, 255, 0.88)";
-          ctx.fillRect(
-            Math.max(pad.left, Math.min(boxX, width - pad.right - labelWidth - labelPadX * 2)),
-            Math.max(pad.top, Math.min(boxY, height - pad.bottom - labelHeight)),
-            labelWidth + labelPadX * 2,
-            labelHeight,
-          );
-          ctx.fillStyle = markerColor;
-          ctx.textAlign = textAlign;
-          ctx.textBaseline = textBaseline;
-          ctx.fillText(label, labelX, labelY);
         }
       });
 
@@ -889,6 +890,64 @@
       ctx.fillText(displayDate(dates[0]), pad.left, height - 22);
       ctx.textAlign = "right";
       ctx.fillText(displayDate(dates[dates.length - 1]), width - pad.right, height - 22);
+    }
+
+    function findTrendMarker(payload, canvasId, clientX, clientY) {
+      const canvas = document.getElementById(canvasId);
+      const rect = canvas.getBoundingClientRect();
+      const width = rect.width;
+      const height = rect.height;
+      const dates = payload.trend?.dates || [];
+      const bySymbol = payload.trend?.by_symbol || {};
+      const markersBySymbol = payload.trend?.markers_by_symbol || {};
+      const positions = payload.positions || [];
+      const total = (payload.trend?.total_market_value || []).map((point) => point.value);
+      const series = [
+        { values: total },
+        ...positions.map((position) => ({ values: bySymbol[position.symbol] || [] })),
+      ];
+      const values = series.flatMap((item) => item.values).filter((value) => value !== null && value !== undefined).map(Number);
+      if (!dates.length || !values.length) return null;
+
+      const pad = { left: 64, right: 18, top: 18, bottom: 34 };
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      const span = Math.max(max - min, 1);
+      const plotW = width - pad.left - pad.right;
+      const plotH = height - pad.top - pad.bottom;
+      const xFor = (index) => pad.left + (dates.length === 1 ? 0 : (plotW * index) / (dates.length - 1));
+      const yFor = (value) => pad.top + plotH - ((value - min) / span) * plotH;
+      const pointerX = clientX - rect.left;
+      const pointerY = clientY - rect.top;
+      const hitRadius = 13;
+      let closest = null;
+      for (const position of positions) {
+        const markers = markersBySymbol[position.symbol] || [];
+        const valuesForSymbol = bySymbol[position.symbol] || [];
+        for (const marker of markers) {
+          const index = dates.indexOf(marker.date);
+          if (index < 0) continue;
+          const value = valuesForSymbol[index];
+          if (value === null || value === undefined) continue;
+          const x = xFor(index);
+          const y = yFor(Number(value));
+          const distance = Math.hypot(pointerX - x, pointerY - y);
+          if (distance <= hitRadius && (!closest || distance < closest.distance)) {
+            closest = { symbol: position.symbol, date: marker.date, distance };
+          }
+        }
+      }
+      return closest ? { symbol: closest.symbol, date: closest.date } : null;
+    }
+
+    function updateTrendHover(canvasId, event) {
+      if (!latestPayload) return;
+      const hit = findTrendMarker(latestPayload, canvasId, event.clientX, event.clientY);
+      const current = trendHoverState[canvasId];
+      if ((current?.symbol || null) === (hit?.symbol || null) && (current?.date || null) === (hit?.date || null)) return;
+      trendHoverState[canvasId] = hit;
+      document.getElementById(canvasId).style.cursor = hit ? "pointer" : "default";
+      drawTrend(latestPayload, canvasId);
     }
 
     function openTrendModal() {
@@ -910,6 +969,23 @@
     document.getElementById("rangeSelect").addEventListener("change", loadDashboard);
     document.getElementById("expandTrendButton").addEventListener("click", openTrendModal);
     document.getElementById("closeTrendButton").addEventListener("click", closeTrendModal);
+    for (const canvasId of ["trendChart", "expandedTrendChart"]) {
+      const canvas = document.getElementById(canvasId);
+      canvas.addEventListener("mousemove", (event) => updateTrendHover(canvasId, event));
+      canvas.addEventListener("mouseleave", () => {
+        trendHoverState[canvasId] = null;
+        canvas.style.cursor = "default";
+        if (latestPayload) drawTrend(latestPayload, canvasId);
+      });
+      canvas.addEventListener("touchstart", (event) => {
+        const touch = event.touches[0];
+        if (touch) updateTrendHover(canvasId, touch);
+      }, { passive: true });
+      canvas.addEventListener("touchmove", (event) => {
+        const touch = event.touches[0];
+        if (touch) updateTrendHover(canvasId, touch);
+      }, { passive: true });
+    }
     document.getElementById("trendModal").addEventListener("click", (event) => {
       if (event.target.id === "trendModal") closeTrendModal();
     });
