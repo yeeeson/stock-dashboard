@@ -176,6 +176,50 @@
     .analysis-item.warning { border-left-color: var(--gold); }
     .analysis-item.positive { border-left-color: var(--positive); }
     .analysis-item.negative { border-left-color: var(--negative); }
+    .sector-list {
+      display: grid;
+      gap: 14px;
+    }
+    .sector-group {
+      border-top: 1px solid var(--line);
+      padding-top: 12px;
+    }
+    .sector-group:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+    .sector-heading {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .sector-heading strong {
+      font-size: 15px;
+    }
+    .sector-heading span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+      text-align: right;
+    }
+    .term-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+    }
+    .term-item {
+      border-left: 3px solid var(--accent);
+      background: #fafbf8;
+      padding: 10px 12px;
+      line-height: 1.55;
+    }
+    .term-item strong {
+      display: block;
+      margin-bottom: 3px;
+      font-size: 14px;
+    }
     .note {
       margin-top: 8px;
       color: var(--muted);
@@ -340,6 +384,12 @@
         padding-left: 0;
         padding-top: 10px;
       }
+      .sector-heading {
+        display: grid;
+      }
+      .sector-heading span {
+        text-align: left;
+      }
       .chart {
         height: 260px;
       }
@@ -386,12 +436,6 @@
       <div class="card"><div class="label">未實現損益</div><div class="value" id="profitLoss">0 元</div></div>
       <div class="card"><div class="label">總損益率</div><div class="value" id="profitPercent">0%</div></div>
     </div>
-
-    <section class="card">
-      <div class="label">投資分析參考</div>
-      <div class="analysis-list" id="analysisRows"></div>
-      <div class="note">以上為依日 K、均線、RSI、波動、量能與可信新聞整理的客觀檢視項目，不是買賣建議。</div>
-    </section>
 
     <section class="card">
       <div class="chart-head">
@@ -474,6 +518,18 @@
     </section>
 
     <section class="card">
+      <div class="label">分領域觀察名單</div>
+      <div class="sector-list" id="sectorWatchlists"></div>
+      <div class="note">每個領域依技術面分數排序列出前 5 檔，目的是建立追蹤清單，不代表買進建議。</div>
+    </section>
+
+    <section class="card">
+      <div class="label">投資分析參考</div>
+      <div class="analysis-list" id="analysisRows"></div>
+      <div class="note">以上為依日 K、均線、RSI、波動、量能與可信新聞整理的客觀檢視項目，不是買賣建議。</div>
+    </section>
+
+    <section class="card">
       <div class="label">持股最新新聞</div>
       <div class="table-wrap">
         <table>
@@ -488,6 +544,20 @@
           </thead>
           <tbody id="newsRows"></tbody>
         </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="label">專業術語說明</div>
+      <div class="term-grid">
+        <div class="term-item"><strong>MA5 / MA20 / MA60 / MA240</strong><span>Moving Average，移動平均線。分別代表近 5、20、60、240 個交易日平均收盤價，常用來看短線、中線與長線趨勢。</span></div>
+        <div class="term-item"><strong>RSI14</strong><span>Relative Strength Index，相對強弱指標。用近 14 日漲跌衡量動能，數值太高通常代表短線偏熱，太低代表偏弱或可能超跌。</span></div>
+        <div class="term-item"><strong>20 日報酬</strong><span>最近 20 個交易日的價格漲跌幅，用來看近一個月左右的趨勢強弱。</span></div>
+        <div class="term-item"><strong>20 日年化波動</strong><span>用近 20 日價格變動推估一年化波動程度，數值越高代表價格震盪越大。</span></div>
+        <div class="term-item"><strong>60 日最大回撤</strong><span>近 60 個交易日內，從高點跌到低點的最大跌幅，用來看近期風險與修正幅度。</span></div>
+        <div class="term-item"><strong>量能 / 20 日均量</strong><span>最新成交量相對近 20 日平均成交量的倍數，大於 1 代表成交量高於近期平均。</span></div>
+        <div class="term-item"><strong>未實現損益</strong><span>用目前價格估算的帳面賺賠，尚未賣出前都只是浮動損益。</span></div>
+        <div class="term-item"><strong>買入點</strong><span>趨勢線上的同色圓點來自你的投資紀錄，滑到點上會顯示該筆紀錄的買入均價。</span></div>
       </div>
     </section>
 
@@ -639,6 +709,7 @@
       const records = payload.investment_records || [];
       const analysis = payload.analysis || [];
       const watchlist = payload.watchlist || [];
+      const sectorWatchlists = payload.sector_watchlists || [];
       const news = payload.news || [];
       const generatedAt = payload.generated_at ? new Date(payload.generated_at).toLocaleString() : "無資料";
       document.getElementById("subtitle").textContent = `最新報價日 ${displayDate(summary.latest_quote_date)}，即時報價 ${summary.realtime_quote_count || 0}/${summary.quote_count || 0} 檔，更新時間 ${generatedAt}`;
@@ -710,6 +781,8 @@
         `).join("")
         : `<tr><td colspan="10" class="empty">目前沒有符合條件的觀察標的</td></tr>`;
 
+      renderSectorWatchlists(sectorWatchlists);
+
       document.getElementById("newsRows").innerHTML = news.length
         ? news.map((row) => `
           <tr>
@@ -724,6 +797,55 @@
 
       renderLegend(positions);
       drawTrend(payload);
+    }
+    function watchlistTableRows(items) {
+      return items.map((row) => `
+        <tr>
+          <td><strong>${escapeHtml(row.symbol)}</strong></td>
+          <td>${stockNameLink(row)}</td>
+          <td>${numberText(row.latest_close, 2)}</td>
+          <td>${numberText(row.technical?.ma5, 2)}</td>
+          <td>${numberText(row.technical?.ma20, 2)}</td>
+          <td>${numberText(row.technical?.ma60, 2)}</td>
+          <td>${numberText(row.technical?.ma240, 2)}</td>
+          <td>${numberText(row.technical?.rsi14, 2)}</td>
+          <td>${percent(row.technical?.return20)}</td>
+          <td class="reason-cell">${escapeHtml((row.reasons || []).join("；"))}</td>
+        </tr>
+      `).join("");
+    }
+    function renderSectorWatchlists(groups) {
+      document.getElementById("sectorWatchlists").innerHTML = groups.length
+        ? groups.map((group) => `
+          <div class="sector-group">
+            <div class="sector-heading">
+              <strong>${escapeHtml(group.label || "")}</strong>
+              <span>${escapeHtml(group.description || "")}</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>代號</th>
+                    <th>名稱</th>
+                    <th>收盤</th>
+                    <th>MA5</th>
+                    <th>MA20</th>
+                    <th>MA60</th>
+                    <th>MA240</th>
+                    <th>RSI14</th>
+                    <th>20 日報酬</th>
+                    <th class="reason-cell">關注理由</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${(group.items || []).length ? watchlistTableRows(group.items || []) : `<tr><td colspan="10" class="empty">目前沒有可用資料</td></tr>`}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `).join("")
+        : `<div class="empty">目前沒有分領域觀察資料</div>`;
     }
     function legendHtml(positions) {
       const rows = [
