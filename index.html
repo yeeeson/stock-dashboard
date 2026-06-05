@@ -679,7 +679,7 @@
           value: money(position.market_value),
         })),
       ];
-      document.getElementById("legend").innerHTML = rows.map((item) => `
+      return rows.map((item) => `
         <div class="legend-item">
           <span class="dot" style="background:${item.color}"></span>
           <span>${escapeHtml(item.label)}</span>
