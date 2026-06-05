@@ -157,25 +157,30 @@
       height: 12px;
       border-radius: 999px;
     }
-    .analysis-list {
-      display: grid;
-      gap: 8px;
+    .level-pill {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: 12px;
+      font-weight: 800;
+      background: #eef2ff;
+      color: var(--accent);
     }
-    .analysis-item {
-      border-left: 4px solid var(--line);
-      background: #fafbf8;
-      padding: 10px 12px;
+    .level-pill.warning { background: #fff7ed; color: #92400e; }
+    .level-pill.positive { background: #ecfdf3; color: var(--positive); }
+    .level-pill.negative { background: #fef3f2; color: var(--negative); }
+    .analysis-subject {
+      min-width: 150px;
+      text-align: left;
+      white-space: normal;
+    }
+    .analysis-text {
+      min-width: 240px;
+      max-width: 520px;
+      text-align: left;
+      white-space: normal;
       line-height: 1.55;
     }
-    .analysis-item strong {
-      display: block;
-      margin-bottom: 3px;
-      font-size: 14px;
-    }
-    .analysis-item.info { border-left-color: var(--accent); }
-    .analysis-item.warning { border-left-color: var(--gold); }
-    .analysis-item.positive { border-left-color: var(--positive); }
-    .analysis-item.negative { border-left-color: var(--negative); }
     .sector-list {
       display: grid;
       gap: 14px;
@@ -525,7 +530,19 @@
 
     <section class="card">
       <div class="label">投資分析參考</div>
-      <div class="analysis-list" id="analysisRows"></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>面向</th>
+              <th>狀態</th>
+              <th>依據</th>
+              <th>配置參考</th>
+            </tr>
+          </thead>
+          <tbody id="analysisRows"></tbody>
+        </table>
+      </div>
       <div class="note">以上為依日 K、均線、RSI、波動、量能與可信新聞整理的客觀檢視項目，不是買賣建議。</div>
     </section>
 
@@ -727,12 +744,14 @@
 
       document.getElementById("analysisRows").innerHTML = analysis.length
         ? analysis.map((row) => `
-          <div class="analysis-item ${escapeHtml(row.level || "info")}">
-            <strong>${escapeHtml(row.title)}</strong>
-            <span>${escapeHtml(row.detail)}</span>
-          </div>
+          <tr>
+            <td class="analysis-subject"><strong>${escapeHtml(row.title)}</strong></td>
+            <td><span class="level-pill ${escapeHtml(row.level || "info")}">${escapeHtml(row.status || row.level || "info")}</span></td>
+            <td class="analysis-text">${escapeHtml(row.evidence || row.detail || "")}</td>
+            <td class="analysis-text">${escapeHtml(row.suggestion || "持續追蹤，不單靠單一指標做決策。")}</td>
+          </tr>
         `).join("")
-        : `<div class="empty">目前沒有足夠資料產生分析參考</div>`;
+        : `<tr><td colspan="4" class="empty">目前沒有足夠資料產生分析參考</td></tr>`;
 
       document.getElementById("positionRows").innerHTML = positions.length
         ? positions.map((row) => `
