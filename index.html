@@ -25,7 +25,7 @@
       font-family: "Microsoft JhengHei", "Noto Sans TC", system-ui, sans-serif;
     }
     main {
-      width: min(1360px, 100%);
+      width: min(1680px, 100%);
       margin: 0 auto;
       padding: 20px 16px 36px;
     }
@@ -128,10 +128,10 @@
       gap: 12px;
     }
     .primary-column {
-      flex: 1 1 760px;
+      flex: 1 1 980px;
     }
     .side-column {
-      flex: 0 1 420px;
+      flex: 0 1 500px;
     }
     .dashboard-layout section,
     .dashboard-layout .band-heading,
@@ -293,6 +293,9 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       gap: 10px;
+    }
+    .full-width-section {
+      margin-top: 12px;
     }
     .sector-heading {
       display: flex;
@@ -667,8 +670,11 @@
                   <th>名稱</th>
                   <th>收盤</th>
                   <th>MA5</th>
+                  <th>MA5 乖離</th>
                   <th>MA20</th>
+                  <th>MA20 乖離</th>
                   <th>MA60</th>
+                  <th>MA60 乖離</th>
                   <th>MA240</th>
                   <th>RSI14</th>
                   <th>20 日報酬</th>
@@ -687,29 +693,6 @@
         </div>
         <div class="sector-watchlist-stack" id="sectorWatchlists" aria-label="分領域觀察名單"></div>
 
-        <section class="card us-watchlist-card">
-          <div class="label">美股指標觀察</div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>代號</th>
-                  <th>名稱</th>
-                  <th>類型</th>
-                  <th>收盤</th>
-                  <th>MA20</th>
-                  <th>MA60</th>
-                  <th>MA240</th>
-                  <th>RSI14</th>
-                  <th>20 日報酬</th>
-                  <th class="reason-cell">觀察理由</th>
-                </tr>
-              </thead>
-              <tbody id="usWatchlistRows"></tbody>
-            </table>
-          </div>
-          <div class="note">美股資料只做指標追蹤與技術面比較，價格單位為 USD，不納入目前台股持股損益。</div>
-        </section>
       </div>
 
       <div class="side-column">
@@ -759,6 +742,33 @@
         </section>
       </div>
     </div>
+
+    <section class="card us-watchlist-card full-width-section">
+      <div class="label">美股指標觀察</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>代號</th>
+              <th>名稱</th>
+              <th>類型</th>
+              <th>收盤</th>
+              <th>MA5 乖離</th>
+              <th>MA20</th>
+              <th>MA20 乖離</th>
+              <th>MA60</th>
+              <th>MA60 乖離</th>
+              <th>MA240</th>
+              <th>RSI14</th>
+              <th>20 日報酬</th>
+              <th class="reason-cell">觀察理由</th>
+            </tr>
+          </thead>
+          <tbody id="usWatchlistRows"></tbody>
+        </table>
+      </div>
+      <div class="note">美股資料只做指標追蹤與技術面比較，價格單位為 USD，不納入目前台股持股損益。</div>
+    </section>
 
     <section class="card error" id="error" hidden></section>
   </main>
@@ -995,15 +1005,18 @@
             <td>${stockNameLink(row)}</td>
             <td>${numberText(row.latest_close, 2)}</td>
             <td>${numberText(row.technical?.ma5, 2)}</td>
+            <td>${percent(row.technical?.ma5_bias)}</td>
             <td>${numberText(row.technical?.ma20, 2)}</td>
+            <td>${percent(row.technical?.ma20_bias)}</td>
             <td>${numberText(row.technical?.ma60, 2)}</td>
+            <td>${percent(row.technical?.ma60_bias)}</td>
             <td>${numberText(row.technical?.ma240, 2)}</td>
             <td>${numberText(row.technical?.rsi14, 2)}</td>
             <td>${percent(row.technical?.return20)}</td>
             <td class="reason-cell">${escapeHtml(reasonText(row.reasons))}</td>
           </tr>
         `).join("")
-        : `<tr><td colspan="10" class="empty">目前沒有符合條件的觀察標的</td></tr>`;
+        : `<tr><td colspan="13" class="empty">目前沒有符合條件的觀察標的</td></tr>`;
 
       renderSectorWatchlists(sectorWatchlists);
       renderUsWatchlist(usWatchlist);
@@ -1032,8 +1045,11 @@
           <td>${stockNameLink(row)}</td>
           <td>${numberText(row.latest_close, 2)}</td>
           <td>${numberText(row.technical?.ma5, 2)}</td>
+          <td>${percent(row.technical?.ma5_bias)}</td>
           <td>${numberText(row.technical?.ma20, 2)}</td>
+          <td>${percent(row.technical?.ma20_bias)}</td>
           <td>${numberText(row.technical?.ma60, 2)}</td>
+          <td>${percent(row.technical?.ma60_bias)}</td>
           <td>${numberText(row.technical?.ma240, 2)}</td>
           <td>${numberText(row.technical?.rsi14, 2)}</td>
           <td>${percent(row.technical?.return20)}</td>
@@ -1044,8 +1060,11 @@
     function sectorTechnicalText(row) {
       const technical = row.technical || {};
       return [
+        `MA5 乖離 ${percent(technical.ma5_bias)}`,
         `MA20 ${numberText(technical.ma20, 2)}`,
+        `MA20 乖離 ${percent(technical.ma20_bias)}`,
         `MA60 ${numberText(technical.ma60, 2)}`,
+        `MA60 乖離 ${percent(technical.ma60_bias)}`,
         `RSI14 ${numberText(technical.rsi14, 2)}`,
         `20 日 ${percent(technical.return20)}`,
       ].join("，");
@@ -1073,15 +1092,18 @@
             <td>${usStockNameLink(row)}</td>
             <td>${escapeHtml(row.category || "")}</td>
             <td>${numberText(row.latest_close, 2)}<br><small>${escapeHtml(row.currency || "USD")} ${displayDate(row.latest_date)}</small></td>
+            <td>${percent(row.technical?.ma5_bias)}</td>
             <td>${numberText(row.technical?.ma20, 2)}</td>
+            <td>${percent(row.technical?.ma20_bias)}</td>
             <td>${numberText(row.technical?.ma60, 2)}</td>
+            <td>${percent(row.technical?.ma60_bias)}</td>
             <td>${numberText(row.technical?.ma240, 2)}</td>
             <td>${numberText(row.technical?.rsi14, 2)}</td>
             <td>${percent(row.technical?.return20)}</td>
             <td class="reason-cell">${escapeHtml(reasonText(row.reasons))}</td>
           </tr>
         `).join("")
-        : `<tr><td colspan="10" class="empty">目前沒有美股觀察資料</td></tr>`;
+        : `<tr><td colspan="13" class="empty">目前沒有美股觀察資料</td></tr>`;
     }
     function renderSectorWatchlists(groups) {
       document.getElementById("sectorWatchlists").innerHTML = groups.length
