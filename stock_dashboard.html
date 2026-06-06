@@ -7,10 +7,10 @@
   <style>
     * { box-sizing: border-box; }
     :root {
-      --bg: #f6f7f4;
+      --bg: #eef2f6;
       --text: #17202a;
       --muted: #667085;
-      --line: #dfe5dc;
+      --line: #d7dee8;
       --panel: #ffffff;
       --positive: #0f766e;
       --negative: #c2410c;
@@ -25,9 +25,9 @@
       font-family: "Microsoft JhengHei", "Noto Sans TC", system-ui, sans-serif;
     }
     main {
-      width: min(1440px, 100%);
+      width: min(1360px, 100%);
       margin: 0 auto;
-      padding: 18px 14px 34px;
+      padding: 20px 16px 36px;
     }
     header {
       display: grid;
@@ -82,18 +82,19 @@
     .kpis {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
+      gap: 12px;
     }
     .card {
       background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 14px;
-      box-shadow: 0 10px 24px rgba(23, 32, 42, 0.07);
+      border-radius: 10px;
+      padding: 16px;
+      box-shadow: 0 12px 28px rgba(23, 32, 42, 0.06);
     }
     .label {
-      color: var(--muted);
-      font-size: 13px;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 800;
       line-height: 1.4;
     }
     .value {
@@ -116,9 +117,9 @@
     .dashboard-layout {
       display: grid;
       grid-template-columns: repeat(12, minmax(0, 1fr));
-      gap: 10px;
+      gap: 12px;
       align-items: start;
-      margin-top: 10px;
+      margin-top: 12px;
     }
     .dashboard-layout > section,
     .dashboard-layout > div {
@@ -131,6 +132,25 @@
     .span-7 { grid-column: span 7; }
     .span-8 { grid-column: span 8; }
     .span-12 { grid-column: 1 / -1; }
+    .band-heading {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: end;
+      color: var(--text);
+      font-weight: 900;
+      line-height: 1.35;
+      padding: 4px 2px 0;
+    }
+    .band-heading span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      text-align: right;
+    }
+    .trend-card .chart {
+      height: 360px;
+    }
     .chart {
       width: 100%;
       height: 300px;
@@ -154,8 +174,8 @@
     }
     .split {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 320px;
-      gap: 10px;
+      grid-template-columns: minmax(0, 1fr) 250px;
+      gap: 12px;
     }
     .legend {
       display: grid;
@@ -198,6 +218,65 @@
       text-align: left;
       white-space: normal;
       line-height: 1.55;
+    }
+    .analysis-list {
+      display: grid;
+      gap: 10px;
+    }
+    .analysis-item {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f8fafc;
+      padding: 10px 12px;
+    }
+    .analysis-item-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 7px;
+    }
+    .analysis-item-title {
+      font-weight: 800;
+      line-height: 1.35;
+    }
+    .analysis-item-text {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+      overflow-wrap: anywhere;
+    }
+    .analysis-item-suggestion {
+      margin-top: 6px;
+      color: var(--text);
+      font-size: 12px;
+      line-height: 1.55;
+      overflow-wrap: anywhere;
+    }
+    .news-list {
+      display: grid;
+      gap: 10px;
+    }
+    .news-item {
+      border-top: 1px solid var(--line);
+      padding-top: 10px;
+    }
+    .news-item:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+    .news-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      margin-bottom: 4px;
+    }
+    .news-item-title {
+      line-height: 1.5;
+      overflow-wrap: anywhere;
     }
     .sector-watchlist-stack {
       display: grid;
@@ -512,7 +591,8 @@
       <div class="card"><div class="label">總損益率</div><div class="value" id="profitPercent">0%</div></div>
     </div>
 
-    <section class="card trend-card">
+    <div class="dashboard-layout">
+    <section class="card trend-card span-8">
       <div class="chart-head">
         <div class="label">趨勢線</div>
         <button class="secondary-button" id="expandTrendButton" type="button">放大</button>
@@ -526,7 +606,12 @@
       </div>
     </section>
 
-    <div class="dashboard-layout">
+    <section class="card analysis-card span-4">
+      <div class="label">投資分析參考</div>
+      <div class="analysis-list" id="analysisRows"></div>
+      <div class="note">以上為依日 K、均線、RSI、波動、量能與可信新聞整理的客觀檢視項目，不是買賣建議。</div>
+    </section>
+
     <section class="card positions-card span-8">
       <div class="label">持股明細</div>
       <div class="table-wrap">
@@ -549,25 +634,7 @@
       </div>
     </section>
 
-    <section class="card analysis-card span-4">
-      <div class="label">投資分析參考</div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>面向</th>
-              <th>狀態</th>
-              <th>依據</th>
-              <th>配置參考</th>
-            </tr>
-          </thead>
-          <tbody id="analysisRows"></tbody>
-        </table>
-      </div>
-      <div class="note">以上為依日 K、均線、RSI、波動、量能與可信新聞整理的客觀檢視項目，不是買賣建議。</div>
-    </section>
-
-    <section class="card records-card span-5">
+    <section class="card records-card span-4">
       <div class="label">近期投資紀錄</div>
       <div class="table-wrap">
         <table>
@@ -587,25 +654,12 @@
       </div>
     </section>
 
-    <section class="card news-card span-7">
+    <section class="card news-card span-4">
       <div class="label">持股最新新聞</div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>時間</th>
-              <th>代號</th>
-              <th>名稱</th>
-              <th class="news-title-cell">標題</th>
-              <th>來源</th>
-            </tr>
-          </thead>
-          <tbody id="newsRows"></tbody>
-        </table>
-      </div>
+      <div class="news-list" id="newsRows"></div>
     </section>
 
-    <section class="card watchlist-card span-12">
+    <section class="card watchlist-card span-8">
       <div class="label">觀察名單</div>
       <div class="table-wrap">
         <table>
@@ -629,6 +683,10 @@
       <div class="note">觀察名單由固定候選池用技術面條件篩選，只代表值得追蹤，不代表適合買進。</div>
     </section>
 
+    <div class="band-heading span-12">
+      <strong>分領域觀察名單</strong>
+      <span>每個領域依技術面分數排序列出前 5 檔，這是追蹤清單，不代表買進建議。</span>
+    </div>
     <div class="sector-watchlist-stack span-12" id="sectorWatchlists" aria-label="分領域觀察名單"></div>
 
     <section class="card us-watchlist-card span-8">
@@ -857,14 +915,16 @@
 
       document.getElementById("analysisRows").innerHTML = analysis.length
         ? analysis.map((row) => `
-          <tr>
-            <td class="analysis-subject"><strong>${escapeHtml(row.title)}</strong></td>
-            <td><span class="level-pill ${escapeHtml(row.level || "info")}">${escapeHtml(row.status || row.level || "info")}</span></td>
-            <td class="analysis-text">${escapeHtml(row.evidence || row.detail || "")}</td>
-            <td class="analysis-text">${escapeHtml(row.suggestion || "持續追蹤，不單靠單一指標做決策。")}</td>
-          </tr>
+          <div class="analysis-item">
+            <div class="analysis-item-head">
+              <div class="analysis-item-title">${escapeHtml(row.title)}</div>
+              <span class="level-pill ${escapeHtml(row.level || "info")}">${escapeHtml(row.status || row.level || "info")}</span>
+            </div>
+            <div class="analysis-item-text">${escapeHtml(row.evidence || row.detail || "")}</div>
+            <div class="analysis-item-suggestion">${escapeHtml(row.suggestion || "持續追蹤，不單靠單一指標做決策。")}</div>
+          </div>
         `).join("")
-        : `<tr><td colspan="4" class="empty">目前沒有足夠資料產生分析參考</td></tr>`;
+        : `<div class="empty">目前沒有足夠資料產生分析參考</div>`;
 
       document.getElementById("positionRows").innerHTML = positions.length
         ? positions.map((row) => `
@@ -918,15 +978,17 @@
 
       document.getElementById("newsRows").innerHTML = news.length
         ? news.map((row) => `
-          <tr>
-            <td>${displayDateTime(row.date)}</td>
-            <td>${escapeHtml(row.symbol)}</td>
-            <td>${escapeHtml(row.display_name || "")}</td>
-            <td class="news-title-cell">${newsTitle(row)}</td>
-            <td>${escapeHtml(row.source || "")}</td>
-          </tr>
+          <div class="news-item">
+            <div class="news-meta">
+              <span>${displayDateTime(row.date)}</span>
+              <span>${escapeHtml(row.symbol)}</span>
+              <span>${escapeHtml(row.display_name || "")}</span>
+              <span>${escapeHtml(row.source || "")}</span>
+            </div>
+            <div class="news-item-title">${newsTitle(row)}</div>
+          </div>
         `).join("")
-        : `<tr><td colspan="5" class="empty">最近沒有找到持股相關新聞</td></tr>`;
+        : `<div class="empty">最近沒有找到持股相關新聞</div>`;
 
       renderLegend(positions);
       drawTrend(payload);
@@ -1000,7 +1062,6 @@
             <div class="sector-stock-list">
               ${(group.items || []).length ? sectorStockRows(group.items || []) : `<div class="empty">目前沒有可用資料</div>`}
             </div>
-            <div class="note">依技術面分數排序列出前 5 檔，這是追蹤清單，不代表買進建議。</div>
           </section>
         `).join("")
         : `<div class="empty">目前沒有分領域觀察資料</div>`;
