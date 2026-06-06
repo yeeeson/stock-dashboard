@@ -198,24 +198,16 @@
       white-space: normal;
       line-height: 1.55;
     }
-    .sector-list {
+    .sector-watchlist-stack {
       display: grid;
-      gap: 14px;
-    }
-    .sector-group {
-      border-top: 1px solid var(--line);
-      padding-top: 12px;
-    }
-    .sector-group:first-child {
-      border-top: 0;
-      padding-top: 0;
+      gap: 10px;
     }
     .sector-heading {
       display: flex;
       align-items: baseline;
       justify-content: space-between;
       gap: 12px;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
     .sector-heading strong {
       font-size: 15px;
@@ -225,6 +217,51 @@
       font-size: 12px;
       line-height: 1.4;
       text-align: right;
+    }
+    .sector-stock-list {
+      display: grid;
+      gap: 0;
+    }
+    .sector-stock-row {
+      display: grid;
+      grid-template-columns: 74px minmax(0, 1fr);
+      gap: 10px;
+      padding: 10px 0;
+      border-top: 1px solid var(--line);
+    }
+    .sector-stock-row:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+    .sector-symbol {
+      display: grid;
+      gap: 4px;
+      align-content: start;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .sector-symbol strong {
+      color: var(--text);
+      font-size: 14px;
+    }
+    .sector-stock-main {
+      min-width: 0;
+      display: grid;
+      gap: 5px;
+    }
+    .sector-technical {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      white-space: normal;
+    }
+    .sector-reason {
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.5;
+      white-space: normal;
+      overflow-wrap: anywhere;
     }
     .term-grid {
       display: grid;
@@ -583,11 +620,7 @@
       <div class="note">觀察名單由固定候選池用技術面條件篩選，只代表值得追蹤，不代表適合買進。</div>
     </section>
 
-    <section class="card sector-watchlist-card">
-      <div class="label">分領域觀察名單</div>
-      <div class="sector-list" id="sectorWatchlists"></div>
-      <div class="note">每個領域依技術面分數排序列出前 5 檔，目的是建立追蹤清單，不代表買進建議。</div>
-    </section>
+    <div class="sector-watchlist-stack" id="sectorWatchlists" aria-label="分領域觀察名單"></div>
 
     <section class="card us-watchlist-card">
       <div class="label">美股指標觀察</div>
@@ -906,6 +939,30 @@
         </tr>
       `).join("");
     }
+    function sectorTechnicalText(row) {
+      const technical = row.technical || {};
+      return [
+        `MA20 ${numberText(technical.ma20, 2)}`,
+        `MA60 ${numberText(technical.ma60, 2)}`,
+        `RSI14 ${numberText(technical.rsi14, 2)}`,
+        `20 日 ${percent(technical.return20)}`,
+      ].join("，");
+    }
+    function sectorStockRows(items) {
+      return items.map((row) => `
+        <div class="sector-stock-row">
+          <div class="sector-symbol">
+            <strong>${escapeHtml(row.symbol)}</strong>
+            <span>${numberText(row.latest_close, 2)}</span>
+          </div>
+          <div class="sector-stock-main">
+            <div>${stockNameLink(row)}</div>
+            <div class="sector-technical">${escapeHtml(sectorTechnicalText(row))}</div>
+            <div class="sector-reason">${escapeHtml(reasonText(row.reasons))}</div>
+          </div>
+        </div>
+      `).join("");
+    }
     function renderUsWatchlist(items) {
       document.getElementById("usWatchlistRows").innerHTML = items.length
         ? items.map((row) => `
@@ -927,33 +984,16 @@
     function renderSectorWatchlists(groups) {
       document.getElementById("sectorWatchlists").innerHTML = groups.length
         ? groups.map((group) => `
-          <div class="sector-group">
+          <section class="card sector-watchlist-card">
             <div class="sector-heading">
               <strong>${escapeHtml(group.label || "")}</strong>
               <span>${escapeHtml(group.description || "")}</span>
             </div>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>代號</th>
-                    <th>名稱</th>
-                    <th>收盤</th>
-                    <th>MA5</th>
-                    <th>MA20</th>
-                    <th>MA60</th>
-                    <th>MA240</th>
-                    <th>RSI14</th>
-                    <th>20 日報酬</th>
-                    <th class="reason-cell">關注理由</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${(group.items || []).length ? watchlistTableRows(group.items || []) : `<tr><td colspan="10" class="empty">目前沒有可用資料</td></tr>`}
-                </tbody>
-              </table>
+            <div class="sector-stock-list">
+              ${(group.items || []).length ? sectorStockRows(group.items || []) : `<div class="empty">目前沒有可用資料</div>`}
             </div>
-          </div>
+            <div class="note">依技術面分數排序列出前 5 檔，這是追蹤清單，不代表買進建議。</div>
+          </section>
         `).join("")
         : `<div class="empty">目前沒有分領域觀察資料</div>`;
     }
