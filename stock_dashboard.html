@@ -141,8 +141,7 @@
       justify-content: center;
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
     }
-    .theme-button:hover,
-    .secondary-button:hover {
+    .theme-button:hover {
       border-color: var(--accent);
       color: var(--accent);
     }
@@ -338,12 +337,29 @@
     .secondary-button {
       flex: 0 0 auto;
       height: 34px;
-      border: 1px solid var(--line);
-      background: white;
-      color: var(--text);
-      padding: 0 12px;
+      border: 1px solid color-mix(in srgb, var(--accent) 74%, white 26%);
+      background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 92%, white 8%), var(--accent));
+      color: #ffffff;
+      padding: 0 13px;
       font-size: 13px;
-      font-weight: 700;
+      font-weight: 850;
+      box-shadow: 0 8px 18px color-mix(in srgb, var(--accent) 28%, transparent);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+    .secondary-button:hover {
+      filter: brightness(1.07);
+      transform: translateY(-1px);
+    }
+    .secondary-button:focus-visible,
+    .theme-button:focus-visible,
+    button:focus-visible,
+    select:focus-visible {
+      outline: 2px solid color-mix(in srgb, var(--accent) 72%, white 28%);
+      outline-offset: 2px;
     }
     .split {
       display: grid;
@@ -847,7 +863,7 @@
         <section class="card trend-card" id="trendSection">
           <div class="chart-head">
             <div class="label">趨勢線</div>
-            <button class="secondary-button" id="expandTrendButton" type="button">放大</button>
+            <button class="secondary-button" id="expandTrendButton" type="button">⛶ 放大</button>
           </div>
           <div class="split">
             <canvas class="chart" id="trendChart"></canvas>
