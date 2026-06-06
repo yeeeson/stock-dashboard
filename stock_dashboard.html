@@ -116,38 +116,28 @@
     section { margin-top: 10px; }
     .dashboard-layout {
       display: flex;
-      flex-wrap: wrap;
       gap: 12px;
       align-items: flex-start;
       margin-top: 12px;
     }
-    .dashboard-layout > section,
-    .dashboard-layout > div {
+    .primary-column,
+    .side-column {
       min-width: 0;
-      margin-top: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
-    .trend-card,
-    .positions-card,
-    .watchlist-card,
-    .us-watchlist-card {
+    .primary-column {
       flex: 1 1 760px;
     }
-    .analysis-card,
-    .records-card,
-    .news-card,
-    .terms-card {
-      flex: 1 1 360px;
+    .side-column {
+      flex: 0 1 420px;
     }
-    .trend-card { order: 1; }
-    .analysis-card { order: 2; }
-    .positions-card { order: 3; }
-    .records-card { order: 4; }
-    .watchlist-card { order: 5; }
-    .news-card { order: 6; }
-    .band-heading { order: 7; flex: 1 1 100%; }
-    .sector-watchlist-stack { order: 8; flex: 1 1 100%; }
-    .us-watchlist-card { order: 9; }
-    .terms-card { order: 10; }
+    .dashboard-layout section,
+    .dashboard-layout .band-heading,
+    .dashboard-layout .sector-watchlist-stack {
+      margin-top: 0;
+    }
     .band-heading {
       display: flex;
       justify-content: space-between;
@@ -537,9 +527,10 @@
       .dashboard-layout {
         flex-direction: column;
       }
-      .dashboard-layout > section,
-      .dashboard-layout > div {
-        flex-basis: 100%;
+      .primary-column,
+      .side-column {
+        width: 100%;
+        flex-basis: auto;
       }
       .sector-watchlist-stack {
         grid-template-columns: 1fr;
@@ -607,140 +598,144 @@
     </div>
 
     <div class="dashboard-layout">
-    <section class="card trend-card">
-      <div class="chart-head">
-        <div class="label">趨勢線</div>
-        <button class="secondary-button" id="expandTrendButton" type="button">放大</button>
-      </div>
-      <div class="split">
-        <canvas class="chart" id="trendChart"></canvas>
-        <div>
-          <div class="legend" id="legend"></div>
-          <div class="warning" id="warning" hidden></div>
+      <div class="primary-column">
+        <section class="card trend-card">
+          <div class="chart-head">
+            <div class="label">趨勢線</div>
+            <button class="secondary-button" id="expandTrendButton" type="button">放大</button>
+          </div>
+          <div class="split">
+            <canvas class="chart" id="trendChart"></canvas>
+            <div>
+              <div class="legend" id="legend"></div>
+              <div class="warning" id="warning" hidden></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card positions-card">
+          <div class="label">持股明細</div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>代號</th>
+                  <th>名稱</th>
+                  <th>股數</th>
+                  <th>均價</th>
+                  <th>最新價</th>
+                  <th>成本</th>
+                  <th>市值</th>
+                  <th>損益</th>
+                  <th>損益率</th>
+                </tr>
+              </thead>
+              <tbody id="positionRows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card watchlist-card">
+          <div class="label">觀察名單</div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>代號</th>
+                  <th>名稱</th>
+                  <th>收盤</th>
+                  <th>MA5</th>
+                  <th>MA20</th>
+                  <th>MA60</th>
+                  <th>MA240</th>
+                  <th>RSI14</th>
+                  <th>20 日報酬</th>
+                  <th class="reason-cell">關注理由</th>
+                </tr>
+              </thead>
+              <tbody id="watchlistRows"></tbody>
+            </table>
+          </div>
+          <div class="note">觀察名單由固定候選池用技術面條件篩選，只代表值得追蹤，不代表適合買進。</div>
+        </section>
+
+        <div class="band-heading">
+          <strong>分領域觀察名單</strong>
+          <span>每個領域依技術面分數排序列出前 5 檔，這是追蹤清單，不代表買進建議。</span>
         </div>
+        <div class="sector-watchlist-stack" id="sectorWatchlists" aria-label="分領域觀察名單"></div>
+
+        <section class="card us-watchlist-card">
+          <div class="label">美股指標觀察</div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>代號</th>
+                  <th>名稱</th>
+                  <th>類型</th>
+                  <th>收盤</th>
+                  <th>MA20</th>
+                  <th>MA60</th>
+                  <th>MA240</th>
+                  <th>RSI14</th>
+                  <th>20 日報酬</th>
+                  <th class="reason-cell">觀察理由</th>
+                </tr>
+              </thead>
+              <tbody id="usWatchlistRows"></tbody>
+            </table>
+          </div>
+          <div class="note">美股資料只做指標追蹤與技術面比較，價格單位為 USD，不納入目前台股持股損益。</div>
+        </section>
       </div>
-    </section>
 
-    <section class="card analysis-card">
-      <div class="label">投資分析參考</div>
-      <div class="analysis-list" id="analysisRows"></div>
-      <div class="note">以上為依日 K、均線、RSI、波動、量能與可信新聞整理的客觀檢視項目，不是買賣建議。</div>
-    </section>
+      <div class="side-column">
+        <section class="card analysis-card">
+          <div class="label">投資分析參考</div>
+          <div class="analysis-list" id="analysisRows"></div>
+          <div class="note">以上為依日 K、均線、RSI、波動、量能與可信新聞整理的客觀檢視項目，不是買賣建議。</div>
+        </section>
 
-    <section class="card positions-card">
-      <div class="label">持股明細</div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>代號</th>
-              <th>名稱</th>
-              <th>股數</th>
-              <th>均價</th>
-              <th>最新價</th>
-              <th>成本</th>
-              <th>市值</th>
-              <th>損益</th>
-              <th>損益率</th>
-            </tr>
-          </thead>
-          <tbody id="positionRows"></tbody>
-        </table>
+        <section class="card records-card">
+          <div class="label">近期投資紀錄</div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>日期</th>
+                  <th>標的</th>
+                  <th>名稱</th>
+                  <th>動作</th>
+                  <th>成本</th>
+                  <th>股數</th>
+                  <th>均價</th>
+                </tr>
+              </thead>
+              <tbody id="recordRows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card news-card">
+          <div class="label">持股最新新聞</div>
+          <div class="news-list" id="newsRows"></div>
+        </section>
+
+        <section class="card terms-card">
+          <div class="label">專業術語說明</div>
+          <div class="term-grid">
+            <div class="term-item"><strong>MA5 / MA20 / MA60 / MA240</strong><span>Moving Average，移動平均線。分別代表近 5、20、60、240 個交易日平均收盤價，常用來看短線、中線與長線趨勢。</span></div>
+            <div class="term-item"><strong>RSI14</strong><span>Relative Strength Index，相對強弱指標。用近 14 日漲跌衡量動能，數值太高通常代表短線偏熱，太低代表偏弱或可能超跌。</span></div>
+            <div class="term-item"><strong>20 日報酬</strong><span>最近 20 個交易日的價格漲跌幅，用來看近一個月左右的趨勢強弱。</span></div>
+            <div class="term-item"><strong>20 日年化波動</strong><span>用近 20 日價格變動推估一年化波動程度，數值越高代表價格震盪越大。</span></div>
+            <div class="term-item"><strong>60 日最大回撤</strong><span>近 60 個交易日內，從高點跌到低點的最大跌幅，用來看近期風險與修正幅度。</span></div>
+            <div class="term-item"><strong>量能 / 20 日均量</strong><span>最新成交量相對近 20 日平均成交量的倍數，大於 1 代表成交量高於近期平均。</span></div>
+            <div class="term-item"><strong>未實現損益</strong><span>用目前價格估算的帳面賺賠，尚未賣出前都只是浮動損益。</span></div>
+            <div class="term-item"><strong>買入點</strong><span>趨勢線上的同色圓點來自你的投資紀錄，滑到點上會顯示該筆紀錄的買入均價。</span></div>
+          </div>
+        </section>
       </div>
-    </section>
-
-    <section class="card records-card">
-      <div class="label">近期投資紀錄</div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>日期</th>
-              <th>標的</th>
-              <th>名稱</th>
-              <th>動作</th>
-              <th>成本</th>
-              <th>股數</th>
-              <th>均價</th>
-            </tr>
-          </thead>
-          <tbody id="recordRows"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <section class="card news-card">
-      <div class="label">持股最新新聞</div>
-      <div class="news-list" id="newsRows"></div>
-    </section>
-
-    <section class="card watchlist-card">
-      <div class="label">觀察名單</div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>代號</th>
-              <th>名稱</th>
-              <th>收盤</th>
-              <th>MA5</th>
-              <th>MA20</th>
-              <th>MA60</th>
-              <th>MA240</th>
-              <th>RSI14</th>
-              <th>20 日報酬</th>
-              <th class="reason-cell">關注理由</th>
-            </tr>
-          </thead>
-          <tbody id="watchlistRows"></tbody>
-        </table>
-      </div>
-      <div class="note">觀察名單由固定候選池用技術面條件篩選，只代表值得追蹤，不代表適合買進。</div>
-    </section>
-
-    <div class="band-heading">
-      <strong>分領域觀察名單</strong>
-      <span>每個領域依技術面分數排序列出前 5 檔，這是追蹤清單，不代表買進建議。</span>
-    </div>
-    <div class="sector-watchlist-stack" id="sectorWatchlists" aria-label="分領域觀察名單"></div>
-
-    <section class="card us-watchlist-card">
-      <div class="label">美股指標觀察</div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>代號</th>
-              <th>名稱</th>
-              <th>類型</th>
-              <th>收盤</th>
-              <th>MA20</th>
-              <th>MA60</th>
-              <th>MA240</th>
-              <th>RSI14</th>
-              <th>20 日報酬</th>
-              <th class="reason-cell">觀察理由</th>
-            </tr>
-          </thead>
-          <tbody id="usWatchlistRows"></tbody>
-        </table>
-      </div>
-      <div class="note">美股資料只做指標追蹤與技術面比較，價格單位為 USD，不納入目前台股持股損益。</div>
-    </section>
-
-    <section class="card terms-card">
-      <div class="label">專業術語說明</div>
-      <div class="term-grid">
-        <div class="term-item"><strong>MA5 / MA20 / MA60 / MA240</strong><span>Moving Average，移動平均線。分別代表近 5、20、60、240 個交易日平均收盤價，常用來看短線、中線與長線趨勢。</span></div>
-        <div class="term-item"><strong>RSI14</strong><span>Relative Strength Index，相對強弱指標。用近 14 日漲跌衡量動能，數值太高通常代表短線偏熱，太低代表偏弱或可能超跌。</span></div>
-        <div class="term-item"><strong>20 日報酬</strong><span>最近 20 個交易日的價格漲跌幅，用來看近一個月左右的趨勢強弱。</span></div>
-        <div class="term-item"><strong>20 日年化波動</strong><span>用近 20 日價格變動推估一年化波動程度，數值越高代表價格震盪越大。</span></div>
-        <div class="term-item"><strong>60 日最大回撤</strong><span>近 60 個交易日內，從高點跌到低點的最大跌幅，用來看近期風險與修正幅度。</span></div>
-        <div class="term-item"><strong>量能 / 20 日均量</strong><span>最新成交量相對近 20 日平均成交量的倍數，大於 1 代表成交量高於近期平均。</span></div>
-        <div class="term-item"><strong>未實現損益</strong><span>用目前價格估算的帳面賺賠，尚未賣出前都只是浮動損益。</span></div>
-        <div class="term-item"><strong>買入點</strong><span>趨勢線上的同色圓點來自你的投資紀錄，滑到點上會顯示該筆紀錄的買入均價。</span></div>
-      </div>
-    </section>
     </div>
 
     <section class="card error" id="error" hidden></section>
