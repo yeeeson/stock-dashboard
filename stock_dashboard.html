@@ -136,6 +136,7 @@
     .dashboard-layout section,
     .dashboard-layout .band-heading,
     .dashboard-layout .sector-watchlist-stack {
+      min-width: 0;
       margin-top: 0;
     }
     .band-heading {
@@ -170,6 +171,7 @@
       margin-bottom: 8px;
     }
     .secondary-button {
+      flex: 0 0 auto;
       height: 34px;
       border: 1px solid var(--line);
       background: white;
@@ -555,12 +557,31 @@
       }
     }
     @media (max-width: 460px) {
+      body {
+        overflow-x: hidden;
+      }
       main {
         padding-left: 10px;
         padding-right: 10px;
+        overflow-x: hidden;
       }
       h1 {
         font-size: 23px;
+      }
+      .card {
+        padding: 14px;
+      }
+      .kpis {
+        gap: 8px;
+      }
+      .chart-head {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+      }
+      .split,
+      .chart {
+        min-width: 0;
+        max-width: 100%;
       }
       .value {
         font-size: 20px;
