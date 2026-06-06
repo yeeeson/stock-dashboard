@@ -7,45 +7,56 @@
   <style>
     * { box-sizing: border-box; }
     :root {
-      --bg: #eef2f6;
-      --text: #17202a;
-      --muted: #667085;
-      --line: #d7dee8;
-      --panel: #ffffff;
-      --positive: #0f766e;
-      --negative: #c2410c;
-      --accent: #1d4ed8;
-      --gold: #b7791f;
-      --violet: #7c3aed;
+      --bg: #0f1117;
+      --bg-soft: #131824;
+      --panel: #171d2a;
+      --panel-2: #1d2536;
+      --line: #2a3348;
+      --text: #e9edf5;
+      --muted: #8d96aa;
+      --positive: #22c55e;
+      --negative: #f9735b;
+      --accent: #4f8ef7;
+      --accent-2: #7c5cf6;
+      --gold: #d79a2b;
+      --violet: #9f7aea;
+      --shadow: 0 16px 36px rgba(0, 0, 0, 0.24);
     }
     body {
       margin: 0;
       background: var(--bg);
       color: var(--text);
       font-family: "Microsoft JhengHei", "Noto Sans TC", system-ui, sans-serif;
+      font-size: 13px;
+      overflow: hidden;
     }
-    main {
-      width: min(1680px, 100%);
-      margin: 0 auto;
-      padding: 20px 16px 36px;
+    .app-shell {
+      display: grid;
+      grid-template-rows: 58px 1fr;
+      height: 100vh;
+      min-height: 0;
     }
-    header {
+    .app-header {
       display: grid;
       grid-template-columns: 1fr auto;
-      gap: 12px;
-      align-items: end;
-      margin-bottom: 14px;
+      gap: 16px;
+      align-items: center;
+      padding: 0 20px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.02);
+      z-index: 2;
     }
     h1 {
       margin: 0 0 5px;
-      font-size: 26px;
+      font-size: 18px;
       line-height: 1.2;
       letter-spacing: 0;
     }
     .sub {
       margin: 0;
       color: var(--muted);
-      font-size: 13px;
+      font-size: 12px;
       line-height: 1.5;
     }
     .toolbar {
@@ -57,13 +68,13 @@
     select,
     button {
       height: 40px;
-      border-radius: 8px;
+      border-radius: 7px;
       font: inherit;
     }
     select {
       min-width: 112px;
       border: 1px solid var(--line);
-      background: white;
+      background: var(--panel-2);
       padding: 0 10px;
       color: var(--text);
     }
@@ -75,6 +86,85 @@
       font-weight: 700;
       cursor: pointer;
     }
+    .app-body {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 240px minmax(0, 1fr);
+      overflow: hidden;
+    }
+    .left-rail {
+      min-height: 0;
+      overflow-y: auto;
+      background: var(--panel);
+      border-right: 1px solid var(--line);
+      padding: 12px;
+    }
+    .rail-section {
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .rail-section:first-child {
+      padding-top: 0;
+    }
+    .rail-title {
+      margin-bottom: 9px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .rail-meta {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+    .rail-nav {
+      display: grid;
+      gap: 4px;
+    }
+    .rail-nav a,
+    .rail-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      min-width: 0;
+      padding: 8px 9px;
+      border-radius: 8px;
+      color: var(--muted);
+      text-decoration: none;
+      line-height: 1.35;
+    }
+    .rail-nav a:hover,
+    .rail-item:hover {
+      background: var(--panel-2);
+      color: var(--text);
+    }
+    .rail-item strong {
+      color: var(--text);
+      font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .rail-item span {
+      color: var(--muted);
+      font-size: 11px;
+      text-align: right;
+    }
+    .rail-item span.positive {
+      color: var(--positive);
+    }
+    .rail-item span.negative {
+      color: var(--negative);
+    }
+    main.content {
+      min-width: 0;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 16px;
+      background: var(--bg);
+    }
     button:disabled {
       cursor: wait;
       opacity: 0.7;
@@ -82,14 +172,14 @@
     .kpis {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 12px;
+      gap: 10px;
     }
     .card {
       background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 16px;
-      box-shadow: 0 12px 28px rgba(23, 32, 42, 0.06);
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: var(--shadow);
     }
     .label {
       color: var(--text);
@@ -99,7 +189,7 @@
     }
     .value {
       margin-top: 8px;
-      font-size: 24px;
+      font-size: 23px;
       line-height: 1.18;
       font-weight: 800;
       overflow-wrap: anywhere;
@@ -113,12 +203,12 @@
     }
     .positive { color: var(--positive); }
     .negative { color: var(--negative); }
-    section { margin-top: 10px; }
+    section { margin-top: 10px; scroll-margin-top: 74px; }
     .dashboard-layout {
       display: flex;
-      gap: 12px;
+      gap: 10px;
       align-items: flex-start;
-      margin-top: 12px;
+      margin-top: 10px;
     }
     .primary-column,
     .side-column {
@@ -128,10 +218,10 @@
       gap: 12px;
     }
     .primary-column {
-      flex: 1 1 980px;
+      flex: 1 1 1020px;
     }
     .side-column {
-      flex: 0 1 500px;
+      flex: 0 1 410px;
     }
     .dashboard-layout section,
     .dashboard-layout .band-heading,
@@ -156,7 +246,7 @@
       text-align: right;
     }
     .trend-card .chart {
-      height: 360px;
+      height: 330px;
     }
     .chart {
       width: 100%;
@@ -182,7 +272,7 @@
     }
     .split {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 250px;
+      grid-template-columns: minmax(0, 1fr) 230px;
       gap: 12px;
     }
     .legend {
@@ -230,14 +320,14 @@
     .analysis-list {
       display: grid;
       gap: 10px;
-      max-height: 560px;
+      max-height: 480px;
       overflow: auto;
       padding-right: 4px;
     }
     .analysis-item {
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: #f8fafc;
+      background: var(--panel-2);
       padding: 10px 12px;
     }
     .analysis-item-head {
@@ -365,7 +455,7 @@
     }
     .term-item {
       border-left: 3px solid var(--accent);
-      background: #fafbf8;
+      background: var(--panel-2);
       padding: 10px 12px;
       line-height: 1.55;
     }
@@ -403,7 +493,7 @@
     }
     th {
       color: var(--muted);
-      background: #fafbf8;
+      background: var(--panel-2);
       font-weight: 700;
     }
     .news-title-cell {
@@ -468,7 +558,7 @@
     }
     .modal-canvas-wrap {
       min-height: 0;
-      background: white;
+      background: var(--panel);
       border-radius: 8px;
       padding: 12px;
     }
@@ -513,8 +603,29 @@
       line-height: 1.5;
     }
     @media (max-width: 860px) {
-      header {
+      body {
+        overflow: auto;
+      }
+      .app-shell {
+        min-height: 100vh;
+        height: auto;
+        display: block;
+      }
+      .app-header {
         grid-template-columns: 1fr;
+        align-items: start;
+        padding: 16px 14px;
+      }
+      .app-body {
+        display: block;
+        overflow: visible;
+      }
+      .left-rail {
+        display: none;
+      }
+      main.content {
+        overflow: visible;
+        padding: 12px;
       }
       .toolbar {
         justify-content: stretch;
@@ -598,8 +709,8 @@
   </style>
 </head>
 <body>
-  <main>
-    <header>
+  <div class="app-shell">
+    <header class="app-header">
       <div>
         <h1>股票資產 Dashboard</h1>
         <p class="sub" id="subtitle">讀取中</p>
@@ -615,6 +726,38 @@
       </div>
     </header>
 
+    <div class="app-body">
+      <aside class="left-rail" aria-label="股票 dashboard 導覽">
+        <div class="rail-section">
+          <div class="rail-title">狀態</div>
+          <div class="rail-meta" id="sidebarStatus">等待資料載入</div>
+        </div>
+        <div class="rail-section">
+          <div class="rail-title">導覽</div>
+          <nav class="rail-nav">
+            <a href="#trendSection"><span>趨勢線</span><span>Chart</span></a>
+            <a href="#positionsSection"><span>持股明細</span><span>Holdings</span></a>
+            <a href="#analysisSection"><span>投資分析</span><span>Notes</span></a>
+            <a href="#watchlistSection"><span>觀察名單</span><span>Watch</span></a>
+            <a href="#newsSection"><span>持股新聞</span><span>News</span></a>
+          </nav>
+        </div>
+        <div class="rail-section">
+          <div class="rail-title">持股快覽</div>
+          <div id="sidebarPositions">
+            <div class="rail-meta">等待資料載入</div>
+          </div>
+        </div>
+        <div class="rail-section">
+          <div class="rail-title">關注名單</div>
+          <div id="sidebarWatchlist">
+            <div class="rail-meta">等待資料載入</div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="content" id="overview">
+
     <div class="kpis">
       <div class="card"><div class="label">總市值</div><div class="value" id="marketValue">0 元</div></div>
       <div class="card"><div class="label">總成本</div><div class="value" id="totalCost">0 元</div></div>
@@ -624,7 +767,7 @@
 
     <div class="dashboard-layout">
       <div class="primary-column">
-        <section class="card trend-card">
+        <section class="card trend-card" id="trendSection">
           <div class="chart-head">
             <div class="label">趨勢線</div>
             <button class="secondary-button" id="expandTrendButton" type="button">放大</button>
@@ -638,7 +781,7 @@
           </div>
         </section>
 
-        <section class="card positions-card">
+        <section class="card positions-card" id="positionsSection">
           <div class="label">持股明細</div>
           <div class="table-wrap">
             <table>
@@ -660,7 +803,7 @@
           </div>
         </section>
 
-        <section class="card watchlist-card">
+        <section class="card watchlist-card" id="watchlistSection">
           <div class="label">觀察名單</div>
           <div class="table-wrap">
             <table>
@@ -696,7 +839,7 @@
       </div>
 
       <div class="side-column">
-        <section class="card analysis-card">
+        <section class="card analysis-card" id="analysisSection">
           <div class="label">投資分析參考</div>
           <div class="analysis-list" id="analysisRows"></div>
           <div class="note">以上為依日 K、均線、RSI、波動、量能與可信新聞整理的客觀檢視項目，不是買賣建議。</div>
@@ -722,7 +865,7 @@
           </div>
         </section>
 
-        <section class="card news-card">
+        <section class="card news-card" id="newsSection">
           <div class="label">持股最新新聞</div>
           <div class="news-list" id="newsRows"></div>
         </section>
@@ -770,8 +913,10 @@
       <div class="note">美股資料只做指標追蹤與技術面比較，價格單位為 USD，不納入目前台股持股損益。</div>
     </section>
 
-    <section class="card error" id="error" hidden></section>
-  </main>
+        <section class="card error" id="error" hidden></section>
+      </main>
+    </div>
+  </div>
 
   <div class="modal" id="trendModal" hidden role="dialog" aria-modal="true" aria-labelledby="trendModalTitle">
     <div class="modal-bar">
@@ -887,6 +1032,39 @@
       if (numeric < 0) return "negative";
       return "";
     }
+    function railItem(label, value, tone = "") {
+      return `
+        <div class="rail-item">
+          <strong>${escapeHtml(label)}</strong>
+          <span class="${escapeHtml(tone)}">${escapeHtml(value)}</span>
+        </div>
+      `;
+    }
+    function renderSidebar(summary, positions, watchlist) {
+      const status = document.getElementById("sidebarStatus");
+      const quoteText = `${summary.realtime_quote_count || 0}/${summary.quote_count || 0}`;
+      status.innerHTML = [
+        `報價 ${escapeHtml(quoteText)} 檔`,
+        `最新 ${escapeHtml(displayDate(summary.latest_quote_date))}`,
+        `損益 ${escapeHtml(percent(summary.total_profit_loss_percent))}`,
+      ].join("<br>");
+
+      document.getElementById("sidebarPositions").innerHTML = positions.length
+        ? positions.slice(0, 8).map((row) => railItem(
+          row.display_name || row.symbol,
+          `${percent(row.profit_loss_percent)}`,
+          classFor(row.profit_loss_percent),
+        )).join("")
+        : `<div class="rail-meta">目前沒有持股資料</div>`;
+
+      document.getElementById("sidebarWatchlist").innerHTML = watchlist.length
+        ? watchlist.slice(0, 8).map((row) => railItem(
+          row.display_name || row.symbol,
+          `${percent(row.technical?.return20)}`,
+          classFor(row.technical?.return20),
+        )).join("")
+        : `<div class="rail-meta">目前沒有觀察資料</div>`;
+    }
     function apiUrl(range) {
       const query = new URLSearchParams({ user, token, format: "json", range });
       return `https://${project}.supabase.co/functions/v1/stock-dashboard?${query}`;
@@ -949,6 +1127,7 @@
       document.getElementById("profitLoss").className = `value ${classFor(summary.total_profit_loss)}`;
       document.getElementById("profitPercent").textContent = percent(summary.total_profit_loss_percent);
       document.getElementById("profitPercent").className = `value ${classFor(summary.total_profit_loss_percent)}`;
+      renderSidebar(summary, positions, watchlist);
 
       const warning = document.getElementById("warning");
       const warnings = summary.warnings || [];
