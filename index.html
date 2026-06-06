@@ -115,31 +115,21 @@
     section { margin-top: 10px; }
     .dashboard-layout {
       display: grid;
-      grid-template-columns: minmax(0, 1.05fr) minmax(380px, 0.95fr);
-      grid-template-areas:
-        "positions trend"
-        "analysis trend"
-        "records news"
-        "terms watchlist"
-        "terms sectors"
-        "terms us";
+      grid-template-columns: minmax(0, 1.12fr) minmax(420px, 0.88fr);
       gap: 10px;
       align-items: start;
       margin-top: 10px;
     }
-    .dashboard-layout > section {
+    .dashboard-column {
+      display: grid;
+      gap: 10px;
+      align-content: start;
+      min-width: 0;
+    }
+    .dashboard-column > section {
       min-width: 0;
       margin-top: 0;
     }
-    .positions-card { grid-area: positions; }
-    .analysis-card { grid-area: analysis; }
-    .records-card { grid-area: records; }
-    .trend-card { grid-area: trend; }
-    .news-card { grid-area: news; }
-    .watchlist-card { grid-area: watchlist; }
-    .sector-watchlist-card { grid-area: sectors; }
-    .us-watchlist-card { grid-area: us; }
-    .terms-card { grid-area: terms; }
     .chart {
       width: 100%;
       height: 300px;
@@ -165,9 +155,6 @@
       display: grid;
       grid-template-columns: minmax(0, 1fr) 320px;
       gap: 10px;
-    }
-    .trend-card .split {
-      grid-template-columns: 1fr;
     }
     .legend {
       display: grid;
@@ -412,16 +399,6 @@
       }
       .dashboard-layout {
         grid-template-columns: 1fr;
-        grid-template-areas:
-          "trend"
-          "positions"
-          "analysis"
-          "records"
-          "watchlist"
-          "sectors"
-          "us"
-          "news"
-          "terms";
       }
       .expanded-layout {
         grid-template-columns: 1fr;
@@ -485,7 +462,6 @@
       <div class="card"><div class="label">總損益率</div><div class="value" id="profitPercent">0%</div></div>
     </div>
 
-    <div class="dashboard-layout">
     <section class="card trend-card">
       <div class="chart-head">
         <div class="label">趨勢線</div>
@@ -500,6 +476,8 @@
       </div>
     </section>
 
+    <div class="dashboard-layout">
+      <div class="dashboard-column">
     <section class="card positions-card">
       <div class="label">持股明細</div>
       <div class="table-wrap">
@@ -522,6 +500,24 @@
       </div>
     </section>
 
+    <section class="card analysis-card">
+      <div class="label">投資分析參考</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>面向</th>
+              <th>狀態</th>
+              <th>依據</th>
+              <th>配置參考</th>
+            </tr>
+          </thead>
+          <tbody id="analysisRows"></tbody>
+        </table>
+      </div>
+      <div class="note">以上為依日 K、均線、RSI、波動、量能與可信新聞整理的客觀檢視項目，不是買賣建議。</div>
+    </section>
+
     <section class="card records-card">
       <div class="label">近期投資紀錄</div>
       <div class="table-wrap">
@@ -538,6 +534,27 @@
             </tr>
           </thead>
           <tbody id="recordRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+      </div>
+
+      <div class="dashboard-column">
+    <section class="card news-card">
+      <div class="label">持股最新新聞</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>時間</th>
+              <th>代號</th>
+              <th>名稱</th>
+              <th class="news-title-cell">標題</th>
+              <th>來源</th>
+            </tr>
+          </thead>
+          <tbody id="newsRows"></tbody>
         </table>
       </div>
     </section>
@@ -596,42 +613,6 @@
       <div class="note">美股資料只做指標追蹤與技術面比較，價格單位為 USD，不納入目前台股持股損益。</div>
     </section>
 
-    <section class="card analysis-card">
-      <div class="label">投資分析參考</div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>面向</th>
-              <th>狀態</th>
-              <th>依據</th>
-              <th>配置參考</th>
-            </tr>
-          </thead>
-          <tbody id="analysisRows"></tbody>
-        </table>
-      </div>
-      <div class="note">以上為依日 K、均線、RSI、波動、量能與可信新聞整理的客觀檢視項目，不是買賣建議。</div>
-    </section>
-
-    <section class="card news-card">
-      <div class="label">持股最新新聞</div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>時間</th>
-              <th>代號</th>
-              <th>名稱</th>
-              <th class="news-title-cell">標題</th>
-              <th>來源</th>
-            </tr>
-          </thead>
-          <tbody id="newsRows"></tbody>
-        </table>
-      </div>
-    </section>
-
     <section class="card terms-card">
       <div class="label">專業術語說明</div>
       <div class="term-grid">
@@ -645,6 +626,7 @@
         <div class="term-item"><strong>買入點</strong><span>趨勢線上的同色圓點來自你的投資紀錄，滑到點上會顯示該筆紀錄的買入均價。</span></div>
       </div>
     </section>
+      </div>
     </div>
 
     <section class="card error" id="error" hidden></section>
