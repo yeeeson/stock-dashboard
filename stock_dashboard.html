@@ -529,6 +529,30 @@
     </section>
 
     <section class="card">
+      <div class="label">美股指標觀察</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>代號</th>
+              <th>名稱</th>
+              <th>類型</th>
+              <th>收盤</th>
+              <th>MA20</th>
+              <th>MA60</th>
+              <th>MA240</th>
+              <th>RSI14</th>
+              <th>20 日報酬</th>
+              <th class="reason-cell">觀察理由</th>
+            </tr>
+          </thead>
+          <tbody id="usWatchlistRows"></tbody>
+        </table>
+      </div>
+      <div class="note">美股資料只做指標追蹤與技術面比較，價格單位為 USD，不納入目前台股持股損益。</div>
+    </section>
+
+    <section class="card">
       <div class="label">投資分析參考</div>
       <div class="table-wrap">
         <table>
@@ -663,6 +687,14 @@
       const url = moneyDjUrl(row.symbol);
       return `<a class="external-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${name}</a>`;
     }
+    function yahooFinanceUrl(symbol) {
+      return `https://finance.yahoo.com/quote/${encodeURIComponent(symbol)}`;
+    }
+    function usStockNameLink(row) {
+      const name = escapeHtml(row.display_name || row.symbol);
+      const url = yahooFinanceUrl(row.symbol);
+      return `<a class="external-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${name}</a>`;
+    }
     function quoteMeta(row) {
       if (row.latest_source === "realtime") {
         return `即時 ${displayDate(row.latest_date)} ${row.latest_time || ""}`.trim();
@@ -727,6 +759,7 @@
       const analysis = payload.analysis || [];
       const watchlist = payload.watchlist || [];
       const sectorWatchlists = payload.sector_watchlists || [];
+      const usWatchlist = payload.us_watchlist || [];
       const news = payload.news || [];
       const generatedAt = payload.generated_at ? new Date(payload.generated_at).toLocaleString() : "無資料";
       document.getElementById("subtitle").textContent = `最新報價日 ${displayDate(summary.latest_quote_date)}，即時報價 ${summary.realtime_quote_count || 0}/${summary.quote_count || 0} 檔，更新時間 ${generatedAt}`;
@@ -801,6 +834,7 @@
         : `<tr><td colspan="10" class="empty">目前沒有符合條件的觀察標的</td></tr>`;
 
       renderSectorWatchlists(sectorWatchlists);
+      renderUsWatchlist(usWatchlist);
 
       document.getElementById("newsRows").innerHTML = news.length
         ? news.map((row) => `
@@ -832,6 +866,24 @@
           <td class="reason-cell">${escapeHtml((row.reasons || []).join("；"))}</td>
         </tr>
       `).join("");
+    }
+    function renderUsWatchlist(items) {
+      document.getElementById("usWatchlistRows").innerHTML = items.length
+        ? items.map((row) => `
+          <tr>
+            <td><strong>${escapeHtml(row.symbol)}</strong></td>
+            <td>${usStockNameLink(row)}</td>
+            <td>${escapeHtml(row.category || "")}</td>
+            <td>${numberText(row.latest_close, 2)}<br><small>${escapeHtml(row.currency || "USD")} ${displayDate(row.latest_date)}</small></td>
+            <td>${numberText(row.technical?.ma20, 2)}</td>
+            <td>${numberText(row.technical?.ma60, 2)}</td>
+            <td>${numberText(row.technical?.ma240, 2)}</td>
+            <td>${numberText(row.technical?.rsi14, 2)}</td>
+            <td>${percent(row.technical?.return20)}</td>
+            <td class="reason-cell">${escapeHtml((row.reasons || []).join("；"))}</td>
+          </tr>
+        `).join("")
+        : `<tr><td colspan="10" class="empty">目前沒有美股觀察資料</td></tr>`;
     }
     function renderSectorWatchlists(groups) {
       document.getElementById("sectorWatchlists").innerHTML = groups.length
