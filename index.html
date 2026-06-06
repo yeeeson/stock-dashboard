@@ -115,21 +115,22 @@
     section { margin-top: 10px; }
     .dashboard-layout {
       display: grid;
-      grid-template-columns: minmax(0, 1.12fr) minmax(420px, 0.88fr);
+      grid-template-columns: repeat(12, minmax(0, 1fr));
       gap: 10px;
       align-items: start;
       margin-top: 10px;
     }
-    .dashboard-column {
-      display: grid;
-      gap: 10px;
-      align-content: start;
-      min-width: 0;
-    }
-    .dashboard-column > section {
+    .dashboard-layout > section,
+    .dashboard-layout > div {
       min-width: 0;
       margin-top: 0;
     }
+    .span-4 { grid-column: span 4; }
+    .span-5 { grid-column: span 5; }
+    .span-6 { grid-column: span 6; }
+    .span-7 { grid-column: span 7; }
+    .span-8 { grid-column: span 8; }
+    .span-12 { grid-column: 1 / -1; }
     .chart {
       width: 100%;
       height: 300px;
@@ -200,6 +201,7 @@
     }
     .sector-watchlist-stack {
       display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 10px;
     }
     .sector-heading {
@@ -437,6 +439,17 @@
       .dashboard-layout {
         grid-template-columns: 1fr;
       }
+      .span-4,
+      .span-5,
+      .span-6,
+      .span-7,
+      .span-8,
+      .span-12 {
+        grid-column: 1 / -1;
+      }
+      .sector-watchlist-stack {
+        grid-template-columns: 1fr;
+      }
       .expanded-layout {
         grid-template-columns: 1fr;
       }
@@ -514,8 +527,7 @@
     </section>
 
     <div class="dashboard-layout">
-      <div class="dashboard-column">
-    <section class="card positions-card">
+    <section class="card positions-card span-8">
       <div class="label">持股明細</div>
       <div class="table-wrap">
         <table>
@@ -537,7 +549,7 @@
       </div>
     </section>
 
-    <section class="card analysis-card">
+    <section class="card analysis-card span-4">
       <div class="label">投資分析參考</div>
       <div class="table-wrap">
         <table>
@@ -555,7 +567,7 @@
       <div class="note">以上為依日 K、均線、RSI、波動、量能與可信新聞整理的客觀檢視項目，不是買賣建議。</div>
     </section>
 
-    <section class="card records-card">
+    <section class="card records-card span-5">
       <div class="label">近期投資紀錄</div>
       <div class="table-wrap">
         <table>
@@ -575,10 +587,7 @@
       </div>
     </section>
 
-      </div>
-
-      <div class="dashboard-column">
-    <section class="card news-card">
+    <section class="card news-card span-7">
       <div class="label">持股最新新聞</div>
       <div class="table-wrap">
         <table>
@@ -596,7 +605,7 @@
       </div>
     </section>
 
-    <section class="card watchlist-card">
+    <section class="card watchlist-card span-12">
       <div class="label">觀察名單</div>
       <div class="table-wrap">
         <table>
@@ -620,9 +629,9 @@
       <div class="note">觀察名單由固定候選池用技術面條件篩選，只代表值得追蹤，不代表適合買進。</div>
     </section>
 
-    <div class="sector-watchlist-stack" id="sectorWatchlists" aria-label="分領域觀察名單"></div>
+    <div class="sector-watchlist-stack span-12" id="sectorWatchlists" aria-label="分領域觀察名單"></div>
 
-    <section class="card us-watchlist-card">
+    <section class="card us-watchlist-card span-8">
       <div class="label">美股指標觀察</div>
       <div class="table-wrap">
         <table>
@@ -646,7 +655,7 @@
       <div class="note">美股資料只做指標追蹤與技術面比較，價格單位為 USD，不納入目前台股持股損益。</div>
     </section>
 
-    <section class="card terms-card">
+    <section class="card terms-card span-4">
       <div class="label">專業術語說明</div>
       <div class="term-grid">
         <div class="term-item"><strong>MA5 / MA20 / MA60 / MA240</strong><span>Moving Average，移動平均線。分別代表近 5、20、60、240 個交易日平均收盤價，常用來看短線、中線與長線趨勢。</span></div>
@@ -659,7 +668,6 @@
         <div class="term-item"><strong>買入點</strong><span>趨勢線上的同色圓點來自你的投資紀錄，滑到點上會顯示該筆紀錄的買入均價。</span></div>
       </div>
     </section>
-      </div>
     </div>
 
     <section class="card error" id="error" hidden></section>
