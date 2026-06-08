@@ -151,6 +151,12 @@
       grid-template-columns: 240px minmax(0, 1fr);
       overflow: hidden;
     }
+    body.rail-collapsed .app-body {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    body.rail-collapsed .left-rail {
+      display: none;
+    }
     .left-rail {
       min-height: 0;
       overflow-y: auto;
@@ -245,7 +251,7 @@
     }
     .kpis {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 11px;
     }
     .card {
@@ -277,6 +283,14 @@
     }
     .positive { color: var(--positive); }
     .negative { color: var(--negative); }
+    .trade-buy { color: var(--negative); }
+    .trade-sell { color: var(--positive); }
+    .trade-neutral { color: var(--muted); }
+    .quote-source {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.45;
+    }
     section { margin-top: 10px; scroll-margin-top: 74px; }
     .dashboard-layout {
       display: flex;
@@ -808,6 +822,7 @@
         <p class="sub" id="subtitle">讀取中</p>
       </div>
       <div class="toolbar">
+        <button class="theme-button" id="railToggleButton" type="button" title="收合左側欄" aria-label="收合左側欄">☰</button>
         <select id="rangeSelect" aria-label="趨勢區間">
           <option value="30">30 日</option>
           <option value="90" selected>90 日</option>
@@ -855,6 +870,7 @@
       <div class="card"><div class="label">總市值</div><div class="value" id="marketValue">0 元</div></div>
       <div class="card"><div class="label">總成本</div><div class="value" id="totalCost">0 元</div></div>
       <div class="card"><div class="label">未實現損益</div><div class="value" id="profitLoss">0 元</div></div>
+      <div class="card"><div class="label">已實現損益</div><div class="value" id="realizedProfitLoss">0 元</div></div>
       <div class="card"><div class="label">總損益率</div><div class="value" id="profitPercent">0%</div></div>
     </div>
 
@@ -888,6 +904,7 @@
                   <th>成本</th>
                   <th>市值</th>
                   <th>損益</th>
+                  <th>已實現</th>
                   <th>損益率</th>
                 </tr>
               </thead>
@@ -988,7 +1005,7 @@
               <th>代號</th>
               <th>名稱</th>
               <th>類型</th>
-              <th>收盤</th>
+              <th>報價</th>
               <th>MA5 乖離</th>
               <th>MA20</th>
               <th>MA20 乖離</th>
@@ -1065,6 +1082,34 @@
         renderLegend(latestPayload.positions || []);
         drawTrend(latestPayload);
         if (!document.getElementById("trendModal").hidden) drawTrend(latestPayload, "expandedTrendChart");
+      }
+    }
+    function applyRailCollapsed(collapsed) {
+      document.body.classList.toggle("rail-collapsed", Boolean(collapsed));
+      const button = document.getElementById("railToggleButton");
+      if (button) {
+        button.textContent = collapsed ? "☷" : "☰";
+        button.title = collapsed ? "展開左側欄" : "收合左側欄";
+        button.setAttribute("aria-label", button.title);
+        button.setAttribute("aria-pressed", collapsed ? "true" : "false");
+      }
+      try {
+        localStorage.setItem("stock-dashboard-rail-collapsed", collapsed ? "1" : "0");
+      } catch {
+        // Ignore storage failures in private browsing or strict file contexts.
+      }
+      if (latestPayload) {
+        window.requestAnimationFrame(() => {
+          drawTrend(latestPayload);
+          if (!document.getElementById("trendModal").hidden) drawTrend(latestPayload, "expandedTrendChart");
+        });
+      }
+    }
+    function initialRailCollapsed() {
+      try {
+        return localStorage.getItem("stock-dashboard-rail-collapsed") === "1";
+      } catch {
+        return false;
       }
     }
     function initialTheme() {
@@ -1156,6 +1201,15 @@
         return `即時 ${displayDate(row.latest_date)} ${row.latest_time || ""}`.trim();
       }
       return `收盤 ${displayDate(row.latest_date)}`;
+    }
+    function usQuoteMeta(row) {
+      const source = row.latest_source === "realtime" ? "Yahoo 即時" : row.latest_source === "daily_close" ? "Yahoo 收盤" : row.source || "Yahoo";
+      return `${escapeHtml(row.currency || "USD")} ${displayDate(row.latest_date)}<br><span class="quote-source">${escapeHtml(source)} ${escapeHtml(row.latest_time || "")}</span>`;
+    }
+    function tradeClass(row) {
+      if (row.trade_direction === "sell") return "trade-sell";
+      if (row.trade_direction === "buy") return "trade-buy";
+      return "trade-neutral";
     }
     function classFor(value) {
       const numeric = Number(value || 0);
@@ -1256,6 +1310,8 @@
       document.getElementById("totalCost").textContent = money(summary.total_cost);
       document.getElementById("profitLoss").textContent = money(summary.total_profit_loss);
       document.getElementById("profitLoss").className = `value ${classFor(summary.total_profit_loss)}`;
+      document.getElementById("realizedProfitLoss").textContent = money(summary.total_realized_profit_loss);
+      document.getElementById("realizedProfitLoss").className = `value ${classFor(summary.total_realized_profit_loss)}`;
       document.getElementById("profitPercent").textContent = percent(summary.total_profit_loss_percent);
       document.getElementById("profitPercent").className = `value ${classFor(summary.total_profit_loss_percent)}`;
       renderSidebar(summary, positions, watchlist);
@@ -1289,10 +1345,11 @@
             <td>${money(row.cost)}</td>
             <td>${money(row.market_value)}</td>
             <td class="${classFor(row.profit_loss)}"><strong>${money(row.profit_loss)}</strong></td>
+            <td class="${classFor(row.realized_profit_loss)}"><strong>${money(row.realized_profit_loss)}</strong></td>
             <td class="${classFor(row.profit_loss_percent)}"><strong>${percent(row.profit_loss_percent)}</strong></td>
           </tr>
         `).join("")
-        : `<tr><td colspan="9" class="empty">目前沒有持股資料</td></tr>`;
+        : `<tr><td colspan="10" class="empty">目前沒有持股資料</td></tr>`;
 
       document.getElementById("recordRows").innerHTML = records.length
         ? records.map((row) => `
@@ -1301,7 +1358,7 @@
             <td>${escapeHtml(row.asset)}</td>
             <td>${escapeHtml(row.display_name || "")}</td>
             <td>${escapeHtml(row.action)}</td>
-            <td><strong>${money(row.cost ?? row.amount)}</strong></td>
+            <td class="${tradeClass(row)}"><strong>${money(row.cost ?? row.amount)}</strong></td>
             <td>${numberText(row.quantity, 3)}</td>
             <td>${numberText(row.average_price ?? row.price, 2)}</td>
           </tr>
@@ -1401,7 +1458,7 @@
             <td><strong>${escapeHtml(row.symbol)}</strong></td>
             <td>${usStockNameLink(row)}</td>
             <td>${escapeHtml(row.category || "")}</td>
-            <td>${numberText(row.latest_close, 2)}<br><small>${escapeHtml(row.currency || "USD")} ${displayDate(row.latest_date)}</small></td>
+            <td>${numberText(row.latest_close, 2)}<br><small>${usQuoteMeta(row)}</small></td>
             <td>${percent(row.technical?.ma5_bias)}</td>
             <td>${numberText(row.technical?.ma20, 2)}</td>
             <td>${percent(row.technical?.ma20_bias)}</td>
@@ -1675,6 +1732,9 @@
     document.getElementById("themeButton").addEventListener("click", () => {
       applyTheme(document.body.classList.contains("light") ? "dark" : "light");
     });
+    document.getElementById("railToggleButton").addEventListener("click", () => {
+      applyRailCollapsed(!document.body.classList.contains("rail-collapsed"));
+    });
     document.getElementById("expandTrendButton").addEventListener("click", openTrendModal);
     document.getElementById("closeTrendButton").addEventListener("click", closeTrendModal);
     for (const canvasId of ["trendChart", "expandedTrendChart"]) {
@@ -1707,6 +1767,7 @@
       }
     });
     applyTheme(initialTheme());
+    applyRailCollapsed(initialRailCollapsed());
     loadDashboard();
   </script>
 </body>
