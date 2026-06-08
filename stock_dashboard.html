@@ -380,6 +380,51 @@
       grid-template-columns: minmax(0, 1fr) 230px;
       gap: 12px;
     }
+    .chart-pair {
+      display: grid;
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+      gap: 10px;
+      align-items: stretch;
+    }
+    .allocation-card,
+    .market-trend-card {
+      min-width: 0;
+    }
+    .mini-chart {
+      width: 100%;
+      height: 250px;
+      display: block;
+    }
+    .allocation-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 180px;
+      gap: 12px;
+      align-items: center;
+    }
+    .compact-legend {
+      display: grid;
+      gap: 7px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .compact-legend-row {
+      display: grid;
+      grid-template-columns: 10px minmax(0, 1fr) auto;
+      gap: 7px;
+      align-items: center;
+    }
+    .compact-legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .compact-legend-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--text);
+      font-weight: 650;
+    }
     .legend {
       display: grid;
       gap: 8px;
@@ -746,6 +791,10 @@
       .split {
         grid-template-columns: 1fr;
       }
+      .chart-pair,
+      .allocation-layout {
+        grid-template-columns: 1fr;
+      }
       .dashboard-layout {
         flex-direction: column;
       }
@@ -889,6 +938,26 @@
             </div>
           </div>
         </section>
+
+        <div class="chart-pair">
+          <section class="card allocation-card">
+            <div class="label">持股配置</div>
+            <div class="allocation-layout">
+              <canvas class="mini-chart" id="allocationChart"></canvas>
+              <div class="compact-legend" id="allocationLegend"></div>
+            </div>
+          </section>
+          <section class="card market-trend-card">
+            <div class="chart-head">
+              <div>
+                <div class="label">大盤趨勢</div>
+                <div class="note">起點 = 100，方便比較不同市場方向。</div>
+              </div>
+            </div>
+            <canvas class="mini-chart" id="marketIndexChart"></canvas>
+            <div class="compact-legend" id="marketIndexLegend"></div>
+          </section>
+        </div>
 
         <section class="card positions-card" id="positionsSection">
           <div class="label">持股明細</div>
@@ -1081,6 +1150,10 @@
       if (latestPayload) {
         renderLegend(latestPayload.positions || []);
         drawTrend(latestPayload);
+        renderAllocation(latestPayload.positions || []);
+        drawAllocation(latestPayload.positions || []);
+        renderMarketIndexLegend(latestPayload.market_trend || {});
+        drawMarketIndexTrend(latestPayload.market_trend || {});
         if (!document.getElementById("trendModal").hidden) drawTrend(latestPayload, "expandedTrendChart");
       }
     }
@@ -1101,6 +1174,8 @@
       if (latestPayload) {
         window.requestAnimationFrame(() => {
           drawTrend(latestPayload);
+          drawAllocation(latestPayload.positions || []);
+          drawMarketIndexTrend(latestPayload.market_trend || {});
           if (!document.getElementById("trendModal").hidden) drawTrend(latestPayload, "expandedTrendChart");
         });
       }
@@ -1202,9 +1277,17 @@
       }
       return `收盤 ${displayDate(row.latest_date)}`;
     }
+    function quoteAgeText(minutes) {
+      const age = Number(minutes);
+      if (!Number.isFinite(age)) return "";
+      if (age < 90) return `，約 ${Math.max(0, Math.round(age))} 分鐘前`;
+      if (age < 36 * 60) return `，約 ${Math.round(age / 60)} 小時前`;
+      return `，約 ${Math.round(age / 1440)} 天前`;
+    }
     function usQuoteMeta(row) {
-      const source = row.latest_source === "realtime" ? "Yahoo 即時" : row.latest_source === "daily_close" ? "Yahoo 收盤" : row.source || "Yahoo";
-      return `${escapeHtml(row.currency || "USD")} ${displayDate(row.latest_date)}<br><span class="quote-source">${escapeHtml(source)} ${escapeHtml(row.latest_time || "")}</span>`;
+      const source = row.latest_source === "delayed_quote" ? "Yahoo 1 分鐘報價" : row.latest_source === "daily_close" ? "Yahoo 收盤" : row.source || "Yahoo";
+      const ageText = quoteAgeText(row.quote_age_minutes);
+      return `${escapeHtml(row.currency || "USD")} ${displayDate(row.latest_date)}<br><span class="quote-source">${escapeHtml(source)} ${escapeHtml(row.latest_time || "")}${escapeHtml(ageText)}</span>`;
     }
     function tradeClass(row) {
       if (row.trade_direction === "sell") return "trade-sell";
@@ -1303,6 +1386,7 @@
       const watchlist = payload.watchlist || [];
       const sectorWatchlists = payload.sector_watchlists || [];
       const usWatchlist = payload.us_watchlist || [];
+      const marketTrend = payload.market_trend || {};
       const news = payload.news || [];
       const generatedAt = payload.generated_at ? new Date(payload.generated_at).toLocaleString() : "無資料";
       document.getElementById("subtitle").textContent = `最新報價日 ${displayDate(summary.latest_quote_date)}，即時報價 ${summary.realtime_quote_count || 0}/${summary.quote_count || 0} 檔，更新時間 ${generatedAt}`;
@@ -1387,6 +1471,10 @@
 
       renderSectorWatchlists(sectorWatchlists);
       renderUsWatchlist(usWatchlist);
+      renderAllocation(positions);
+      drawAllocation(positions);
+      renderMarketIndexLegend(marketTrend);
+      drawMarketIndexTrend(marketTrend);
 
       document.getElementById("newsRows").innerHTML = news.length
         ? news.map((row) => `
@@ -1486,6 +1574,152 @@
           </section>
         `).join("")
         : `<div class="empty">目前沒有分領域觀察資料</div>`;
+    }
+    function resizeCanvas(canvas) {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+      canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+      const ctx = canvas.getContext("2d");
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      return { ctx, width: rect.width, height: rect.height };
+    }
+    function allocationRows(positions) {
+      const rows = (positions || [])
+        .map((position, index) => ({
+          label: position.display_name || position.symbol,
+          value: Number(position.market_value || 0),
+          color: seriesColor(index),
+        }))
+        .filter((row) => row.value > 0);
+      const total = rows.reduce((sum, row) => sum + row.value, 0);
+      return rows.map((row) => ({
+        ...row,
+        percent: total > 0 ? (row.value / total) * 100 : 0,
+      }));
+    }
+    function renderAllocation(positions) {
+      const rows = allocationRows(positions);
+      document.getElementById("allocationLegend").innerHTML = rows.length
+        ? rows.map((row) => `
+          <div class="compact-legend-row">
+            <span class="compact-legend-dot" style="background:${escapeHtml(row.color)}"></span>
+            <span class="compact-legend-label">${escapeHtml(row.label)}</span>
+            <span>${percent(row.percent)}</span>
+          </div>
+        `).join("")
+        : `<div class="empty">目前沒有可用市值資料</div>`;
+    }
+    function drawAllocation(positions) {
+      const canvas = document.getElementById("allocationChart");
+      const { ctx, width, height } = resizeCanvas(canvas);
+      ctx.clearRect(0, 0, width, height);
+      const rows = allocationRows(positions);
+      if (!rows.length) {
+        ctx.fillStyle = cssVar("--chart-axis");
+        ctx.font = "13px sans-serif";
+        ctx.fillText("沒有可用市值資料", 20, 34);
+        return;
+      }
+      const total = rows.reduce((sum, row) => sum + row.value, 0);
+      const radius = Math.max(58, Math.min(width, height) * 0.34);
+      const cx = width / 2;
+      const cy = height / 2;
+      let start = -Math.PI / 2;
+      for (const row of rows) {
+        const angle = (row.value / total) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, radius, start, start + angle);
+        ctx.closePath();
+        ctx.fillStyle = row.color;
+        ctx.fill();
+        start += angle;
+      }
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius * 0.58, 0, Math.PI * 2);
+      ctx.fillStyle = cssVar("--panel");
+      ctx.fill();
+      ctx.fillStyle = cssVar("--text");
+      ctx.textAlign = "center";
+      ctx.font = "700 13px sans-serif";
+      ctx.fillText("總市值", cx, cy - 4);
+      ctx.font = "800 18px sans-serif";
+      ctx.fillText(money(total).replace(" 元", ""), cx, cy + 20);
+      ctx.textAlign = "start";
+    }
+    function renderMarketIndexLegend(marketTrend) {
+      const items = marketTrend?.items || [];
+      document.getElementById("marketIndexLegend").innerHTML = items.length
+        ? items.map((row, index) => `
+          <div class="compact-legend-row">
+            <span class="compact-legend-dot" style="background:${escapeHtml(seriesColor(index + 1))}"></span>
+            <span class="compact-legend-label">${escapeHtml(row.display_name || row.symbol)}</span>
+            <span class="${classFor(row.change20)}">${percent(row.change20)}</span>
+          </div>
+        `).join("")
+        : `<div class="empty">目前沒有大盤資料</div>`;
+    }
+    function drawMarketIndexTrend(marketTrend) {
+      const canvas = document.getElementById("marketIndexChart");
+      const { ctx, width, height } = resizeCanvas(canvas);
+      ctx.clearRect(0, 0, width, height);
+      const dates = marketTrend?.dates || [];
+      const items = marketTrend?.items || [];
+      const allValues = items.flatMap((item) => (item.values || []).filter((value) => value !== null));
+      if (!dates.length || !allValues.length) {
+        ctx.fillStyle = cssVar("--chart-axis");
+        ctx.font = "13px sans-serif";
+        ctx.fillText("沒有可用大盤資料", 20, 34);
+        return;
+      }
+      const min = Math.min(...allValues);
+      const max = Math.max(...allValues);
+      const span = Math.max(1, max - min);
+      const pad = { left: 42, right: 12, top: 14, bottom: 28 };
+      const plotW = Math.max(1, width - pad.left - pad.right);
+      const plotH = Math.max(1, height - pad.top - pad.bottom);
+      const xFor = (index) => pad.left + (dates.length === 1 ? 0 : (plotW * index) / (dates.length - 1));
+      const yFor = (value) => pad.top + ((max - value) / span) * plotH;
+      ctx.strokeStyle = cssVar("--chart-grid");
+      ctx.fillStyle = cssVar("--chart-axis");
+      ctx.font = "12px sans-serif";
+      for (let step = 0; step <= 3; step += 1) {
+        const value = min + (span * step) / 3;
+        const y = yFor(value);
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(width - pad.right, y);
+        ctx.stroke();
+        ctx.fillText(numberText(value, 1), 4, y + 4);
+      }
+      items.forEach((item, index) => {
+        const values = item.values || [];
+        ctx.beginPath();
+        ctx.strokeStyle = seriesColor(index + 1);
+        ctx.lineWidth = 2.4;
+        let started = false;
+        values.forEach((value, valueIndex) => {
+          if (value === null) {
+            started = false;
+            return;
+          }
+          const x = xFor(valueIndex);
+          const y = yFor(value);
+          if (!started) {
+            ctx.moveTo(x, y);
+            started = true;
+          } else {
+            ctx.lineTo(x, y);
+          }
+        });
+        ctx.stroke();
+      });
+      ctx.fillStyle = cssVar("--chart-axis");
+      ctx.fillText(displayDate(dates[0]), pad.left, height - 8);
+      ctx.textAlign = "right";
+      ctx.fillText(displayDate(dates.at(-1)), width - pad.right, height - 8);
+      ctx.textAlign = "start";
     }
     function legendHtml(positions) {
       const rows = [
@@ -1763,6 +1997,8 @@
     window.addEventListener("resize", () => {
       if (latestPayload) {
         drawTrend(latestPayload);
+        drawAllocation(latestPayload.positions || []);
+        drawMarketIndexTrend(latestPayload.market_trend || {});
         if (!document.getElementById("trendModal").hidden) drawTrend(latestPayload, "expandedTrendChart");
       }
     });
