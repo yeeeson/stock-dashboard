@@ -382,7 +382,7 @@
     }
     .chart-pair {
       display: grid;
-      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 10px;
       align-items: stretch;
     }
@@ -397,9 +397,10 @@
     }
     .allocation-layout {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 180px;
-      gap: 12px;
-      align-items: center;
+      gap: 10px;
+    }
+    .allocation-card .mini-chart {
+      height: 310px;
     }
     .compact-legend {
       display: grid;
@@ -424,6 +425,56 @@
       white-space: nowrap;
       color: var(--text);
       font-weight: 650;
+    }
+    .allocation-legend {
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 8px;
+    }
+    .allocation-row {
+      display: grid;
+      grid-template-columns: 12px minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 9px;
+      background: color-mix(in srgb, var(--panel) 86%, var(--bg) 14%);
+    }
+    .allocation-row strong {
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.25;
+    }
+    .allocation-row small {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.25;
+    }
+    .allocation-value {
+      display: grid;
+      gap: 2px;
+      justify-items: end;
+      color: var(--text);
+      font-weight: 750;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .allocation-value span {
+      color: var(--muted);
+      font-weight: 650;
+      font-size: 11px;
+    }
+    .market-index-link {
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .market-index-link:hover {
+      color: var(--accent);
+      text-decoration: underline;
+      text-underline-offset: 3px;
     }
     .legend {
       display: grid;
@@ -944,7 +995,7 @@
             <div class="label">持股配置</div>
             <div class="allocation-layout">
               <canvas class="mini-chart" id="allocationChart"></canvas>
-              <div class="compact-legend" id="allocationLegend"></div>
+              <div class="compact-legend allocation-legend" id="allocationLegend"></div>
             </div>
           </section>
           <section class="card market-trend-card">
@@ -1266,10 +1317,18 @@
     function yahooFinanceUrl(symbol) {
       return `https://finance.yahoo.com/quote/${encodeURIComponent(symbol)}`;
     }
+    function marketIndexUrl(symbol) {
+      return yahooFinanceUrl(symbol);
+    }
     function usStockNameLink(row) {
       const name = escapeHtml(row.display_name || row.symbol);
       const url = yahooFinanceUrl(row.symbol);
       return `<a class="external-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${name}</a>`;
+    }
+    function marketIndexLink(row) {
+      const name = escapeHtml(row.display_name || row.symbol);
+      const url = marketIndexUrl(row.symbol || row.display_name || "");
+      return `<a class="market-index-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${name}</a>`;
     }
     function quoteMeta(row) {
       if (row.latest_source === "realtime") {
@@ -1587,6 +1646,7 @@
     function allocationRows(positions) {
       const rows = (positions || [])
         .map((position, index) => ({
+          symbol: position.symbol,
           label: position.display_name || position.symbol,
           value: Number(position.market_value || 0),
           color: seriesColor(index),
@@ -1602,10 +1662,16 @@
       const rows = allocationRows(positions);
       document.getElementById("allocationLegend").innerHTML = rows.length
         ? rows.map((row) => `
-          <div class="compact-legend-row">
+          <div class="allocation-row">
             <span class="compact-legend-dot" style="background:${escapeHtml(row.color)}"></span>
-            <span class="compact-legend-label">${escapeHtml(row.label)}</span>
-            <span>${percent(row.percent)}</span>
+            <span>
+              <strong>${escapeHtml(row.label)}</strong>
+              <small>${escapeHtml(row.symbol || "")}</small>
+            </span>
+            <span class="allocation-value">
+              ${percent(row.percent)}
+              <span>${escapeHtml(money(row.value))}</span>
+            </span>
           </div>
         `).join("")
         : `<div class="empty">目前沒有可用市值資料</div>`;
@@ -1622,7 +1688,7 @@
         return;
       }
       const total = rows.reduce((sum, row) => sum + row.value, 0);
-      const radius = Math.max(58, Math.min(width, height) * 0.34);
+      const radius = Math.max(70, Math.min(width, height) * 0.42);
       const cx = width / 2;
       const cy = height / 2;
       let start = -Math.PI / 2;
@@ -1654,7 +1720,7 @@
         ? items.map((row, index) => `
           <div class="compact-legend-row">
             <span class="compact-legend-dot" style="background:${escapeHtml(seriesColor(index + 1))}"></span>
-            <span class="compact-legend-label">${escapeHtml(row.display_name || row.symbol)}</span>
+            <span class="compact-legend-label">${marketIndexLink(row)}</span>
             <span class="${classFor(row.change20)}">${percent(row.change20)}</span>
           </div>
         `).join("")
