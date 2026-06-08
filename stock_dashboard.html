@@ -386,6 +386,12 @@
       gap: 10px;
       align-items: stretch;
     }
+    .market-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      align-items: stretch;
+    }
     .allocation-card,
     .market-trend-card {
       min-width: 0;
@@ -397,7 +403,9 @@
     }
     .allocation-layout {
       display: grid;
+      grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
       gap: 10px;
+      align-items: center;
     }
     .allocation-card .mini-chart {
       height: 310px;
@@ -882,6 +890,7 @@
         grid-template-columns: 1fr;
       }
       .chart-pair,
+      .market-grid,
       .allocation-layout {
         grid-template-columns: 1fr;
       }
@@ -1032,29 +1041,42 @@
           </div>
         </section>
 
-        <div class="chart-pair">
-          <section class="card allocation-card">
-            <div class="chart-head">
-              <div>
-                <div class="label">持股配置</div>
-                <div class="note">依最新市值計算，快速檢查集中度。</div>
-              </div>
+        <section class="card allocation-card">
+          <div class="chart-head">
+            <div>
+              <div class="label">持股配置</div>
+              <div class="note">依最新市值計算，快速檢查集中度。</div>
             </div>
-            <div class="allocation-summary" id="allocationSummary"></div>
-            <div class="allocation-layout">
-              <canvas class="mini-chart" id="allocationChart"></canvas>
+          </div>
+          <div class="allocation-summary" id="allocationSummary"></div>
+          <div class="allocation-layout">
+            <canvas class="mini-chart" id="allocationChart"></canvas>
+            <div>
               <div class="compact-legend allocation-legend" id="allocationLegend"></div>
             </div>
+          </div>
+        </section>
+
+        <div class="market-grid">
+          <section class="card market-trend-card">
+            <div class="chart-head">
+              <div>
+                <div class="label">台股大盤趨勢</div>
+                <div class="note">起點 = 100，點擊指標名稱可開啟即時行情頁。</div>
+              </div>
+            </div>
+            <canvas class="mini-chart" id="taiwanMarketIndexChart"></canvas>
+            <div class="compact-legend market-index-legend" id="taiwanMarketIndexLegend"></div>
           </section>
           <section class="card market-trend-card">
             <div class="chart-head">
               <div>
-                <div class="label">大盤趨勢</div>
-                <div class="note">起點 = 100，點擊指標名稱可開啟即時行情頁。</div>
+                <div class="label">美股大盤趨勢</div>
+                <div class="note">S&P 500、Nasdaq 與半導體指標分開觀察。</div>
               </div>
             </div>
-            <canvas class="mini-chart" id="marketIndexChart"></canvas>
-            <div class="compact-legend market-index-legend" id="marketIndexLegend"></div>
+            <canvas class="mini-chart" id="usMarketIndexChart"></canvas>
+            <div class="compact-legend market-index-legend" id="usMarketIndexLegend"></div>
           </section>
         </div>
 
@@ -1251,8 +1273,8 @@
         drawTrend(latestPayload);
         renderAllocation(latestPayload.positions || []);
         drawAllocation(latestPayload.positions || []);
-        renderMarketIndexLegend(latestPayload.market_trend || {});
-        drawMarketIndexTrend(latestPayload.market_trend || {});
+        renderMarketTrends(latestPayload.market_trend || {});
+        drawMarketTrends(latestPayload.market_trend || {});
         if (!document.getElementById("trendModal").hidden) drawTrend(latestPayload, "expandedTrendChart");
       }
     }
@@ -1274,7 +1296,7 @@
         window.requestAnimationFrame(() => {
           drawTrend(latestPayload);
           drawAllocation(latestPayload.positions || []);
-          drawMarketIndexTrend(latestPayload.market_trend || {});
+          drawMarketTrends(latestPayload.market_trend || {});
           if (!document.getElementById("trendModal").hidden) drawTrend(latestPayload, "expandedTrendChart");
         });
       }
@@ -1580,8 +1602,8 @@
       renderUsWatchlist(usWatchlist);
       renderAllocation(positions);
       drawAllocation(positions);
-      renderMarketIndexLegend(marketTrend);
-      drawMarketIndexTrend(marketTrend);
+      renderMarketTrends(marketTrend);
+      drawMarketTrends(marketTrend);
 
       document.getElementById("newsRows").innerHTML = news.length
         ? news.map((row) => `
@@ -1787,20 +1809,37 @@
       ctx.fillText(money(total).replace(" 元", ""), cx, cy + 20);
       ctx.textAlign = "start";
     }
-    function renderMarketIndexLegend(marketTrend) {
+    function marketTrendGroup(marketTrend, group) {
       const items = marketTrend?.items || [];
-      document.getElementById("marketIndexLegend").innerHTML = items.length
+      const filteredItems = items.filter((item) => {
+        const category = String(item.category || "");
+        if (group === "tw") return item.symbol === "^TWII" || category.includes("台股");
+        return item.symbol !== "^TWII" && !category.includes("台股");
+      });
+      return { ...marketTrend, items: filteredItems };
+    }
+    function renderMarketTrends(marketTrend) {
+      renderMarketIndexLegend(marketTrendGroup(marketTrend, "tw"), "taiwanMarketIndexLegend", 0);
+      renderMarketIndexLegend(marketTrendGroup(marketTrend, "us"), "usMarketIndexLegend", 1);
+    }
+    function drawMarketTrends(marketTrend) {
+      drawMarketIndexTrend(marketTrendGroup(marketTrend, "tw"), "taiwanMarketIndexChart", 0);
+      drawMarketIndexTrend(marketTrendGroup(marketTrend, "us"), "usMarketIndexChart", 1);
+    }
+    function renderMarketIndexLegend(marketTrend, targetId, colorOffset = 1) {
+      const items = marketTrend?.items || [];
+      document.getElementById(targetId).innerHTML = items.length
         ? items.map((row, index) => `
           <div class="compact-legend-row">
-            <span class="compact-legend-dot" style="background:${escapeHtml(seriesColor(index + 1))}"></span>
+            <span class="compact-legend-dot" style="background:${escapeHtml(seriesColor(index + colorOffset))}"></span>
             <span class="compact-legend-label">${marketIndexLink(row)}</span>
             <span class="${classFor(row.change20)}">${percent(row.change20)}</span>
           </div>
         `).join("")
         : `<div class="empty">目前沒有大盤資料</div>`;
     }
-    function drawMarketIndexTrend(marketTrend) {
-      const canvas = document.getElementById("marketIndexChart");
+    function drawMarketIndexTrend(marketTrend, canvasId, colorOffset = 1) {
+      const canvas = document.getElementById(canvasId);
       const { ctx, width, height } = resizeCanvas(canvas);
       ctx.clearRect(0, 0, width, height);
       const dates = marketTrend?.dates || [];
@@ -1835,7 +1874,7 @@
       items.forEach((item, index) => {
         const values = item.values || [];
         ctx.beginPath();
-        ctx.strokeStyle = seriesColor(index + 1);
+        ctx.strokeStyle = seriesColor(index + colorOffset);
         ctx.lineWidth = 2.4;
         let started = false;
         values.forEach((value, valueIndex) => {
@@ -2137,7 +2176,7 @@
       if (latestPayload) {
         drawTrend(latestPayload);
         drawAllocation(latestPayload.positions || []);
-        drawMarketIndexTrend(latestPayload.market_trend || {});
+        drawMarketTrends(latestPayload.market_trend || {});
         if (!document.getElementById("trendModal").hidden) drawTrend(latestPayload, "expandedTrendChart");
       }
     });
