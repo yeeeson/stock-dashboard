@@ -14,8 +14,8 @@
       --line: #2a3348;
       --text: #e9edf5;
       --muted: #8d96aa;
-      --positive: #22c55e;
-      --negative: #f9735b;
+      --positive: #f9735b;
+      --negative: #22c55e;
       --accent: #4f8ef7;
       --accent-2: #7c5cf6;
       --gold: #d79a2b;
@@ -42,8 +42,8 @@
       --line: #d2dbea;
       --text: #17202a;
       --muted: #5f6b82;
-      --positive: #0f766e;
-      --negative: #c2410c;
+      --positive: #c2410c;
+      --negative: #0f766e;
       --accent: #2563eb;
       --accent-2: #7c3aed;
       --gold: #b7791f;
@@ -283,8 +283,8 @@
     }
     .positive { color: var(--positive); }
     .negative { color: var(--negative); }
-    .trade-buy { color: var(--negative); }
-    .trade-sell { color: var(--positive); }
+    .trade-buy,
+    .trade-sell { color: var(--text); }
     .trade-neutral { color: var(--muted); }
     .quote-source {
       color: var(--muted);
@@ -400,6 +400,9 @@
       width: 100%;
       height: 250px;
       display: block;
+    }
+    .market-trend-card .mini-chart {
+      height: 340px;
     }
     .allocation-layout {
       display: grid;
@@ -706,8 +709,12 @@
       display: flex;
       flex-wrap: wrap;
       gap: 5px;
+      min-width: 0;
     }
     .technical-tag {
+      display: inline-flex;
+      align-items: center;
+      max-width: 100%;
       border: 1px solid var(--line);
       border-radius: 999px;
       padding: 2px 7px;
@@ -716,6 +723,8 @@
       font-size: 11px;
       font-weight: 750;
       line-height: 1.45;
+      white-space: normal;
+      overflow-wrap: anywhere;
     }
     .technical-tag.positive {
       border-color: color-mix(in srgb, var(--positive) 34%, var(--line));
@@ -723,6 +732,11 @@
       background: color-mix(in srgb, var(--positive) 10%, var(--panel));
     }
     .technical-tag.warning {
+      border-color: color-mix(in srgb, var(--gold) 36%, var(--line));
+      color: var(--gold);
+      background: color-mix(in srgb, var(--gold) 10%, var(--panel));
+    }
+    .technical-tag.negative {
       border-color: color-mix(in srgb, var(--negative) 28%, var(--line));
       color: var(--negative);
       background: color-mix(in srgb, var(--negative) 8%, var(--panel));
@@ -1105,7 +1119,7 @@
             <div class="chart-head">
               <div>
                 <div class="label">台股大盤趨勢</div>
-                <div class="note">使用真實點位，含加權、櫃買與台灣 50 代表。</div>
+                <div class="note">線圖用同起點比較，右側顯示真實點位。</div>
               </div>
             </div>
             <canvas class="mini-chart" id="taiwanMarketIndexChart"></canvas>
@@ -1115,7 +1129,7 @@
             <div class="chart-head">
               <div>
                 <div class="label">美股大盤趨勢</div>
-                <div class="note">使用真實點位，追蹤大型股、科技股與半導體指標。</div>
+                <div class="note">線圖用同起點比較，右側顯示真實點位。</div>
               </div>
             </div>
             <canvas class="mini-chart" id="usMarketIndexChart"></canvas>
@@ -1477,7 +1491,8 @@
     }
     function technicalTagClass(tag) {
       if (/多頭|站上|量能/.test(tag)) return "positive";
-      if (/空頭|跌破|偏弱|偏熱/.test(tag)) return "warning";
+      if (/空頭|跌破|偏弱/.test(tag)) return "negative";
+      if (/偏熱/.test(tag)) return "warning";
       if (/糾結|整理/.test(tag)) return "info";
       return "";
     }
@@ -1488,8 +1503,6 @@
         : "";
     }
     function tradeClass(row) {
-      if (row.trade_direction === "sell") return "trade-sell";
-      if (row.trade_direction === "buy") return "trade-buy";
       return "trade-neutral";
     }
     function classFor(value) {
@@ -1917,7 +1930,11 @@
       ctx.clearRect(0, 0, width, height);
       const dates = marketTrend?.dates || [];
       const items = marketTrend?.items || [];
-      const allValues = items.flatMap((item) => (item.values || []).filter((value) => value !== null));
+      const seriesFor = (item) => {
+        const normalized = item.normalized_values || [];
+        return normalized.length ? normalized : (item.values || []);
+      };
+      const allValues = items.flatMap((item) => seriesFor(item).filter((value) => value !== null));
       if (!dates.length || !allValues.length) {
         ctx.fillStyle = cssVar("--chart-axis");
         ctx.font = "13px sans-serif";
@@ -1945,7 +1962,7 @@
         ctx.fillText(axisNumberText(value), 4, y + 4);
       }
       items.forEach((item, index) => {
-        const values = item.values || [];
+        const values = seriesFor(item);
         ctx.beginPath();
         ctx.strokeStyle = seriesColor(index + colorOffset);
         ctx.lineWidth = 2.4;
