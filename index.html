@@ -714,17 +714,24 @@
     .technical-tag {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      flex: 0 0 86px;
+      width: 86px;
+      height: 23px;
       max-width: 100%;
       border: 1px solid var(--line);
       border-radius: 999px;
-      padding: 2px 7px;
+      padding: 0 8px;
       background: var(--panel-2);
       color: var(--muted);
       font-size: 11px;
       font-weight: 750;
-      line-height: 1.45;
-      white-space: normal;
-      overflow-wrap: anywhere;
+      line-height: 1;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .technical-tag.positive {
       border-color: color-mix(in srgb, var(--positive) 34%, var(--line));
@@ -1499,7 +1506,7 @@
     function technicalTagHtml(tags) {
       const rows = Array.isArray(tags) ? tags.filter(Boolean).slice(0, 4) : [];
       return rows.length
-        ? `<div class="technical-tags">${rows.map((tag) => `<span class="technical-tag ${technicalTagClass(String(tag))}">${escapeHtml(tag)}</span>`).join("")}</div>`
+        ? `<div class="technical-tags">${rows.map((tag) => `<span class="technical-tag ${technicalTagClass(String(tag))}" title="${escapeHtml(tag)}">${escapeHtml(tag)}</span>`).join("")}</div>`
         : "";
     }
     function tradeClass(row) {
