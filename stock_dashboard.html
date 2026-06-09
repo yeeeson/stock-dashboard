@@ -755,23 +755,12 @@
     }
     .technical-tag.warning {
       --tag-tone: var(--gold);
-      margin-top: 0;
-      background: var(--panel-2);
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 0 8px 0 15px;
-      color: var(--text);
-      font-size: 10px;
-      line-height: 1;
     }
     .technical-tag.negative {
       --tag-tone: var(--negative);
     }
     .technical-tag.info {
       --tag-tone: var(--accent);
-    }
-    .technical-tag.hot {
-      --tag-tone: var(--gold);
     }
     .sector-reason {
       color: var(--text);
@@ -925,7 +914,7 @@
       text-align: left;
       white-space: pre-wrap;
     }
-    .warning:not(.technical-tag) {
+    .alert-box {
       margin-top: 10px;
       color: #92400e;
       background: #fff7ed;
@@ -1120,7 +1109,7 @@
             <canvas class="chart" id="trendChart"></canvas>
             <div>
               <div class="legend" id="legend"></div>
-              <div class="warning" id="warning" hidden></div>
+              <div class="alert-box" id="warning" hidden></div>
             </div>
           </div>
         </section>
@@ -1519,7 +1508,7 @@
     function technicalTagClass(tag) {
       if (/多頭|站上|量能/.test(tag)) return "positive";
       if (/空頭|跌破|偏弱/.test(tag)) return "negative";
-      if (/偏熱|偏冷/.test(tag)) return "hot";
+      if (/偏熱/.test(tag)) return "warning";
       if (/糾結|整理/.test(tag)) return "info";
       return "";
     }
