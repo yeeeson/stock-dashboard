@@ -762,6 +762,9 @@
     .technical-tag.info {
       --tag-tone: var(--accent);
     }
+    .technical-tag.hot {
+      --tag-tone: var(--gold);
+    }
     .sector-reason {
       color: var(--text);
       font-size: 13px;
@@ -1508,7 +1511,7 @@
     function technicalTagClass(tag) {
       if (/多頭|站上|量能/.test(tag)) return "positive";
       if (/空頭|跌破|偏弱/.test(tag)) return "negative";
-      if (/偏熱/.test(tag)) return "warning";
+      if (/偏熱|偏冷/.test(tag)) return "hot";
       if (/糾結|整理/.test(tag)) return "info";
       return "";
     }
