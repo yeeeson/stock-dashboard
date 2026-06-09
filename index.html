@@ -719,15 +719,16 @@
       align-items: center;
       justify-content: center;
       box-sizing: border-box;
+      position: relative;
       width: 100%;
       min-width: 0;
       height: 22px;
       max-width: 100%;
       border: 1px solid var(--line);
       border-radius: 999px;
-      padding: 0 6px;
+      padding: 0 8px 0 15px;
       background: var(--panel-2);
-      color: var(--muted);
+      color: var(--text);
       font-size: 10px;
       font-weight: 700;
       letter-spacing: 0;
@@ -737,25 +738,29 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    .technical-tag::before {
+      content: "";
+      position: absolute;
+      left: 7px;
+      top: 50%;
+      width: 5px;
+      height: 5px;
+      border-radius: 999px;
+      transform: translateY(-50%);
+      background: var(--tag-tone, var(--muted));
+      opacity: 0.9;
+    }
     .technical-tag.positive {
-      border-color: color-mix(in srgb, var(--positive) 34%, var(--line));
-      color: var(--positive);
-      background: color-mix(in srgb, var(--positive) 10%, var(--panel));
+      --tag-tone: var(--positive);
     }
     .technical-tag.warning {
-      border-color: color-mix(in srgb, var(--gold) 36%, var(--line));
-      color: var(--gold);
-      background: color-mix(in srgb, var(--gold) 10%, var(--panel));
+      --tag-tone: var(--gold);
     }
     .technical-tag.negative {
-      border-color: color-mix(in srgb, var(--negative) 28%, var(--line));
-      color: var(--negative);
-      background: color-mix(in srgb, var(--negative) 8%, var(--panel));
+      --tag-tone: var(--negative);
     }
     .technical-tag.info {
-      border-color: color-mix(in srgb, var(--accent) 28%, var(--line));
-      color: var(--accent);
-      background: color-mix(in srgb, var(--accent) 9%, var(--panel));
+      --tag-tone: var(--accent);
     }
     .sector-reason {
       color: var(--text);
