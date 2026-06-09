@@ -523,6 +523,19 @@
       padding: 7px 8px;
       background: color-mix(in srgb, var(--panel) 88%, var(--bg) 12%);
     }
+    .market-index-value {
+      display: grid;
+      gap: 2px;
+      justify-items: end;
+      white-space: nowrap;
+      color: var(--text);
+      font-weight: 800;
+      font-size: 12px;
+    }
+    .market-index-value small {
+      font-size: 11px;
+      font-weight: 700;
+    }
     .legend {
       display: grid;
       gap: 8px;
@@ -688,6 +701,36 @@
       font-size: 12px;
       line-height: 1.45;
       white-space: normal;
+    }
+    .technical-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    .technical-tag {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 2px 7px;
+      background: var(--panel-2);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 750;
+      line-height: 1.45;
+    }
+    .technical-tag.positive {
+      border-color: color-mix(in srgb, var(--positive) 34%, var(--line));
+      color: var(--positive);
+      background: color-mix(in srgb, var(--positive) 10%, var(--panel));
+    }
+    .technical-tag.warning {
+      border-color: color-mix(in srgb, var(--negative) 28%, var(--line));
+      color: var(--negative);
+      background: color-mix(in srgb, var(--negative) 8%, var(--panel));
+    }
+    .technical-tag.info {
+      border-color: color-mix(in srgb, var(--accent) 28%, var(--line));
+      color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 9%, var(--panel));
     }
     .sector-reason {
       color: var(--text);
@@ -1062,7 +1105,7 @@
             <div class="chart-head">
               <div>
                 <div class="label">台股大盤趨勢</div>
-                <div class="note">起點 = 100，點擊指標名稱可開啟即時行情頁。</div>
+                <div class="note">使用真實點位，含加權、櫃買與台灣 50 代表。</div>
               </div>
             </div>
             <canvas class="mini-chart" id="taiwanMarketIndexChart"></canvas>
@@ -1072,7 +1115,7 @@
             <div class="chart-head">
               <div>
                 <div class="label">美股大盤趨勢</div>
-                <div class="note">S&P 500、Nasdaq 與半導體指標分開觀察。</div>
+                <div class="note">使用真實點位，追蹤大型股、科技股與半導體指標。</div>
               </div>
             </div>
             <canvas class="mini-chart" id="usMarketIndexChart"></canvas>
@@ -1342,6 +1385,10 @@
       const time = text.slice(11, 16);
       return time ? `${date} ${time}` : date;
     }
+    function displayNewsDate(value) {
+      if (!value) return "無資料";
+      return displayDate(String(value).slice(0, 10));
+    }
     function escapeHtml(value) {
       return String(value ?? "")
         .replaceAll("&", "&amp;")
@@ -1417,6 +1464,28 @@
       const source = row.latest_source === "delayed_quote" ? "Yahoo 1 分鐘報價" : row.latest_source === "daily_close" ? "Yahoo 收盤" : row.source || "Yahoo";
       const ageText = quoteAgeText(row.quote_age_minutes);
       return `${escapeHtml(row.currency || "USD")} ${displayDate(row.latest_date)}<br><span class="quote-source">${escapeHtml(source)} ${escapeHtml(row.latest_time || "")}${escapeHtml(ageText)}</span>`;
+    }
+    function marketIndexValue(row) {
+      const value = Number(row.latest_close);
+      const digits = Number.isFinite(value) && value >= 1000 ? 0 : 2;
+      return numberText(row.latest_close, digits);
+    }
+    function axisNumberText(value) {
+      const numeric = Number(value);
+      const digits = Number.isFinite(numeric) && Math.abs(numeric) >= 1000 ? 0 : 1;
+      return numberText(value, digits);
+    }
+    function technicalTagClass(tag) {
+      if (/多頭|站上|量能/.test(tag)) return "positive";
+      if (/空頭|跌破|偏弱|偏熱/.test(tag)) return "warning";
+      if (/糾結|整理/.test(tag)) return "info";
+      return "";
+    }
+    function technicalTagHtml(tags) {
+      const rows = Array.isArray(tags) ? tags.filter(Boolean).slice(0, 4) : [];
+      return rows.length
+        ? `<div class="technical-tags">${rows.map((tag) => `<span class="technical-tag ${technicalTagClass(String(tag))}">${escapeHtml(tag)}</span>`).join("")}</div>`
+        : "";
     }
     function tradeClass(row) {
       if (row.trade_direction === "sell") return "trade-sell";
@@ -1609,7 +1678,7 @@
         ? news.map((row) => `
           <div class="news-item">
             <div class="news-meta">
-              <span>${displayDateTime(row.date)}</span>
+              <span>${displayNewsDate(row.date)}</span>
               <span>${escapeHtml(row.symbol)}</span>
               <span>${escapeHtml(row.display_name || "")}</span>
               <span>${escapeHtml(row.source || "")}</span>
@@ -1662,6 +1731,7 @@
           </div>
           <div class="sector-stock-main">
             <div>${stockNameLink(row)}</div>
+            ${technicalTagHtml(row.technical_tags)}
             <div class="sector-technical">${escapeHtml(sectorTechnicalText(row))}</div>
             <div class="sector-reason">${escapeHtml(reasonText(row.reasons))}</div>
           </div>
@@ -1833,7 +1903,10 @@
           <div class="compact-legend-row">
             <span class="compact-legend-dot" style="background:${escapeHtml(seriesColor(index + colorOffset))}"></span>
             <span class="compact-legend-label">${marketIndexLink(row)}</span>
-            <span class="${classFor(row.change20)}">${percent(row.change20)}</span>
+            <span class="market-index-value">
+              ${escapeHtml(marketIndexValue(row))}
+              <small class="${classFor(row.change20)}">${percent(row.change20)}</small>
+            </span>
           </div>
         `).join("")
         : `<div class="empty">目前沒有大盤資料</div>`;
@@ -1869,7 +1942,7 @@
         ctx.moveTo(pad.left, y);
         ctx.lineTo(width - pad.right, y);
         ctx.stroke();
-        ctx.fillText(numberText(value, 1), 4, y + 4);
+        ctx.fillText(axisNumberText(value), 4, y + 4);
       }
       items.forEach((item, index) => {
         const values = item.values || [];
