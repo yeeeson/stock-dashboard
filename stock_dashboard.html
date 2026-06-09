@@ -755,6 +755,14 @@
     }
     .technical-tag.warning {
       --tag-tone: var(--gold);
+      margin-top: 0;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0 8px 0 15px;
+      color: var(--text);
+      font-size: 10px;
+      line-height: 1;
     }
     .technical-tag.negative {
       --tag-tone: var(--negative);
@@ -917,7 +925,7 @@
       text-align: left;
       white-space: pre-wrap;
     }
-    .warning {
+    .warning:not(.technical-tag) {
       margin-top: 10px;
       color: #92400e;
       background: #fff7ed;
