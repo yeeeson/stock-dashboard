@@ -1090,8 +1090,8 @@
       <main class="content" id="overview">
 
     <div class="kpis">
-      <div class="card"><div class="label">總市值</div><div class="value" id="marketValue">0 元</div></div>
-      <div class="card"><div class="label">總成本</div><div class="value" id="totalCost">0 元</div></div>
+      <div class="card"><div class="label">總估計淨值</div><div class="value" id="marketValue">0 元</div></div>
+      <div class="card"><div class="label">總含費成本</div><div class="value" id="totalCost">0 元</div></div>
       <div class="card"><div class="label">未實現損益</div><div class="value" id="profitLoss">0 元</div></div>
       <div class="card"><div class="label">已實現損益</div><div class="value" id="realizedProfitLoss">0 元</div></div>
       <div class="card"><div class="label">總損益率</div><div class="value" id="profitPercent">0%</div></div>
@@ -1117,7 +1117,7 @@
           <div class="chart-head">
             <div>
               <div class="label">持股配置</div>
-              <div class="note">依最新市值計算，快速檢查集中度。</div>
+              <div class="note">依估計賣出淨值計算，快速檢查集中度。</div>
             </div>
           </div>
           <div class="allocation-summary" id="allocationSummary"></div>
@@ -1163,8 +1163,9 @@
                   <th>股數</th>
                   <th>均價</th>
                   <th>最新價</th>
-                  <th>成本</th>
-                  <th>市值</th>
+                  <th>含費成本</th>
+                  <th>估計淨值</th>
+                  <th>估賣稅</th>
                   <th>損益</th>
                   <th>已實現</th>
                   <th>損益率</th>
@@ -1227,7 +1228,10 @@
                   <th>標的</th>
                   <th>名稱</th>
                   <th>動作</th>
-                  <th>成本</th>
+                  <th>成交金額</th>
+                  <th>手續費</th>
+                  <th>證交稅</th>
+                  <th>含費成本／淨額</th>
                   <th>股數</th>
                   <th>均價</th>
                 </tr>
@@ -1654,12 +1658,13 @@
             <td>${numberText(row.latest_close, 2)}<br><small>${quoteMeta(row)}</small></td>
             <td>${money(row.cost)}</td>
             <td>${money(row.market_value)}</td>
+            <td>${money(row.estimated_sell_tax)}</td>
             <td class="${classFor(row.profit_loss)}"><strong>${money(row.profit_loss)}</strong></td>
             <td class="${classFor(row.realized_profit_loss)}"><strong>${money(row.realized_profit_loss)}</strong></td>
             <td class="${classFor(row.profit_loss_percent)}"><strong>${percent(row.profit_loss_percent)}</strong></td>
           </tr>
         `).join("")
-        : `<tr><td colspan="10" class="empty">目前沒有持股資料</td></tr>`;
+        : `<tr><td colspan="11" class="empty">目前沒有持股資料</td></tr>`;
 
       document.getElementById("recordRows").innerHTML = records.length
         ? records.map((row) => `
@@ -1668,12 +1673,15 @@
             <td>${escapeHtml(row.asset)}</td>
             <td>${escapeHtml(row.display_name || "")}</td>
             <td>${escapeHtml(row.action)}</td>
-            <td class="${tradeClass(row)}"><strong>${money(row.cost ?? row.amount)}</strong></td>
+            <td>${money(row.gross_amount ?? row.amount)}</td>
+            <td>${money(row.fee)}</td>
+            <td>${money(row.tax)}</td>
+            <td class="${tradeClass(row)}"><strong>${money(row.net_amount ?? row.cost ?? row.amount)}</strong></td>
             <td>${numberText(row.quantity, 3)}</td>
             <td>${numberText(row.average_price ?? row.price, 2)}</td>
           </tr>
         `).join("")
-        : `<tr><td colspan="7" class="empty">這個區間沒有投資紀錄</td></tr>`;
+        : `<tr><td colspan="10" class="empty">這個區間沒有投資紀錄</td></tr>`;
 
       document.getElementById("watchlistRows").innerHTML = watchlist.length
         ? watchlist.map((row) => `
@@ -1830,7 +1838,7 @@
       const rows = allocationRows(positions).sort((a, b) => b.value - a.value);
       const target = document.getElementById("allocationSummary");
       if (!rows.length) {
-        target.innerHTML = `<div class="empty">目前沒有可用市值資料</div>`;
+        target.innerHTML = `<div class="empty">目前沒有可用估計淨值資料</div>`;
         return;
       }
       const top = rows[0];
@@ -1867,7 +1875,7 @@
             </span>
           </div>
         `).join("")
-        : `<div class="empty">目前沒有可用市值資料</div>`;
+        : `<div class="empty">目前沒有可用估計淨值資料</div>`;
     }
     function drawAllocation(positions) {
       const canvas = document.getElementById("allocationChart");
@@ -1877,7 +1885,7 @@
       if (!rows.length) {
         ctx.fillStyle = cssVar("--chart-axis");
         ctx.font = "13px sans-serif";
-        ctx.fillText("沒有可用市值資料", 20, 34);
+        ctx.fillText("沒有可用估計淨值資料", 20, 34);
         return;
       }
       const total = rows.reduce((sum, row) => sum + row.value, 0);
@@ -1902,7 +1910,7 @@
       ctx.fillStyle = cssVar("--text");
       ctx.textAlign = "center";
       ctx.font = "700 13px sans-serif";
-      ctx.fillText("總市值", cx, cy - 4);
+      ctx.fillText("總淨值", cx, cy - 4);
       ctx.font = "800 18px sans-serif";
       ctx.fillText(money(total).replace(" 元", ""), cx, cy + 20);
       ctx.textAlign = "start";
@@ -2006,7 +2014,7 @@
     }
     function legendHtml(positions) {
       const rows = [
-        { label: "總市值", color: totalSeriesColor(), value: "" },
+        { label: "總淨值", color: totalSeriesColor(), value: "" },
         ...positions.map((position, index) => ({
           label: position.display_name || position.symbol,
           color: seriesColor(index),
