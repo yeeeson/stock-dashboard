@@ -388,8 +388,8 @@
     }
     .market-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
       align-items: stretch;
     }
     .allocation-card,
@@ -402,7 +402,7 @@
       display: block;
     }
     .market-trend-card .mini-chart {
-      height: 340px;
+      height: 430px;
     }
     .allocation-layout {
       display: grid;
@@ -653,9 +653,8 @@
     }
     .sector-heading {
       display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 12px;
+      flex-direction: column;
+      gap: 3px;
       margin-bottom: 10px;
     }
     .sector-heading strong {
@@ -663,9 +662,9 @@
     }
     .sector-heading span {
       color: var(--muted);
-      font-size: 12px;
-      line-height: 1.4;
-      text-align: right;
+      font-size: 11px;
+      line-height: 1.5;
+      text-align: left;
     }
     .sector-stock-list {
       display: grid;
@@ -673,8 +672,8 @@
     }
     .sector-stock-row {
       display: grid;
-      grid-template-columns: 74px minmax(0, 1fr);
-      gap: 10px;
+      grid-template-columns: 52px minmax(0, 1fr);
+      gap: 6px;
       padding: 10px 0;
       border-top: 1px solid var(--line);
     }
@@ -914,7 +913,7 @@
       text-align: left;
       white-space: pre-wrap;
     }
-    .warning {
+    .alert-box {
       margin-top: 10px;
       color: #92400e;
       background: #fff7ed;
@@ -1109,7 +1108,7 @@
             <canvas class="chart" id="trendChart"></canvas>
             <div>
               <div class="legend" id="legend"></div>
-              <div class="warning" id="warning" hidden></div>
+              <div class="alert-box" id="warning" hidden></div>
             </div>
           </div>
         </section>
@@ -1135,7 +1134,7 @@
             <div class="chart-head">
               <div>
                 <div class="label">台股大盤趨勢</div>
-                <div class="note">線圖用同起點比較，右側顯示真實點位。</div>
+                <div class="note">線圖直接使用真實點位，右側顯示最新數值與 20 日變化。</div>
               </div>
             </div>
             <canvas class="mini-chart" id="taiwanMarketIndexChart"></canvas>
@@ -1145,7 +1144,7 @@
             <div class="chart-head">
               <div>
                 <div class="label">美股大盤趨勢</div>
-                <div class="note">線圖用同起點比較，右側顯示真實點位。</div>
+                <div class="note">線圖直接使用真實點位，右側顯示最新數值與 20 日變化。</div>
               </div>
             </div>
             <canvas class="mini-chart" id="usMarketIndexChart"></canvas>
@@ -1166,6 +1165,7 @@
                   <th>最新價</th>
                   <th>含費成本</th>
                   <th>估計淨值</th>
+                  <th>估賣費</th>
                   <th>估賣稅</th>
                   <th>損益</th>
                   <th>已實現</th>
@@ -1451,6 +1451,44 @@
         return "";
       }
     }
+    function normalizeNewsTitleKey(title) {
+      return String(title || "")
+        .toLowerCase()
+        .replace(/[｜|].*$/g, "")
+        .replace(/[【】「」『』"'“”‘’（）()［\]\[\]《》〈〉]/g, "")
+        .replace(/\s+/g, "")
+        .replace(/[，。；：、,.!?！？:;-]/g, "");
+    }
+    function canonicalNewsUrlKey(link) {
+      const href = safeUrl(link);
+      if (!href) return "";
+      try {
+        const url = new URL(href);
+        for (const key of [...url.searchParams.keys()]) {
+          if (/^(utm_|fbclid|gclid|yclid|ocid|cid|ref)/i.test(key)) url.searchParams.delete(key);
+        }
+        url.hash = "";
+        return url.href;
+      } catch {
+        return href;
+      }
+    }
+    function dedupeNews(rows) {
+      const seen = new Set();
+      return (Array.isArray(rows) ? rows : []).filter((row) => {
+        const date = String(row.date || "").slice(0, 10);
+        const titleKey = normalizeNewsTitleKey(row.title);
+        const linkKey = canonicalNewsUrlKey(row.link);
+        const keys = [
+          linkKey ? `link:${linkKey}` : "",
+          titleKey ? `title:${date}:${titleKey}` : "",
+        ].filter(Boolean);
+        if (!keys.length) return true;
+        if (keys.some((key) => seen.has(key))) return false;
+        keys.forEach((key) => seen.add(key));
+        return true;
+      });
+    }
     function newsTitle(row) {
       const title = escapeHtml(row.title || "未命名新聞");
       const link = safeUrl(row.link);
@@ -1659,13 +1697,14 @@
             <td>${numberText(row.latest_close, 2)}<br><small>${quoteMeta(row)}</small></td>
             <td>${money(row.cost)}</td>
             <td>${money(row.market_value)}</td>
+            <td>${money(row.estimated_sell_fee)}</td>
             <td>${money(row.estimated_sell_tax)}</td>
             <td class="${classFor(row.profit_loss)}"><strong>${money(row.profit_loss)}</strong></td>
             <td class="${classFor(row.realized_profit_loss)}"><strong>${money(row.realized_profit_loss)}</strong></td>
             <td class="${classFor(row.profit_loss_percent)}"><strong>${percent(row.profit_loss_percent)}</strong></td>
           </tr>
         `).join("")
-        : `<tr><td colspan="11" class="empty">目前沒有持股資料</td></tr>`;
+        : `<tr><td colspan="12" class="empty">目前沒有持股資料</td></tr>`;
 
       document.getElementById("recordRows").innerHTML = records.length
         ? records.map((row) => `
@@ -1711,8 +1750,9 @@
       renderMarketTrends(marketTrend);
       drawMarketTrends(marketTrend);
 
-      document.getElementById("newsRows").innerHTML = news.length
-        ? news.map((row) => `
+      const uniqueNews = dedupeNews(news);
+      document.getElementById("newsRows").innerHTML = uniqueNews.length
+        ? uniqueNews.map((row) => `
           <div class="news-item">
             <div class="news-meta">
               <span>${displayNewsDate(row.date)}</span>
@@ -1955,8 +1995,8 @@
       const dates = marketTrend?.dates || [];
       const items = marketTrend?.items || [];
       const seriesFor = (item) => {
-        const normalized = item.normalized_values || [];
-        return normalized.length ? normalized : (item.values || []);
+        const values = item.values || [];
+        return values.length ? values : (item.normalized_values || []);
       };
       const allValues = items.flatMap((item) => seriesFor(item).filter((value) => value !== null));
       if (!dates.length || !allValues.length) {
