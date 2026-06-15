@@ -1169,15 +1169,21 @@
             <a href="#usNewsSection" data-page="us"><span class="nav-icon">⌕</span><span>美國事件</span><span>US News</span></a>
           </nav>
         </div>
-        <div class="rail-section">
+        <div class="rail-section" data-page="tw">
           <div class="rail-title">持股快覽</div>
           <div id="sidebarPositions">
             <div class="rail-meta">等待資料載入</div>
           </div>
         </div>
-        <div class="rail-section">
+        <div class="rail-section" data-page="tw">
           <div class="rail-title">關注名單</div>
           <div id="sidebarWatchlist">
+            <div class="rail-meta">等待資料載入</div>
+          </div>
+        </div>
+        <div class="rail-section" data-page="us">
+          <div class="rail-title">美股快覽</div>
+          <div id="sidebarUsWatchlist">
             <div class="rail-meta">等待資料載入</div>
           </div>
         </div>
@@ -1767,6 +1773,15 @@
         )).join("")
         : `<div class="rail-meta">目前沒有觀察資料</div>`;
     }
+    function renderSidebarUs(usWatchlist) {
+      document.getElementById("sidebarUsWatchlist").innerHTML = usWatchlist.length
+        ? usWatchlist.slice(0, 10).map((row) => railItem(
+          row.symbol || row.display_name,
+          `${percent(row.technical?.return20)}`,
+          classFor(row.technical?.return20),
+        )).join("")
+        : `<div class="rail-meta">目前沒有美股觀察資料</div>`;
+    }
     function apiUrl(range) {
       const query = new URLSearchParams({ user, token, format: "json", range });
       return `https://${project}.supabase.co/functions/v1/stock-dashboard?${query}`;
@@ -1836,6 +1851,7 @@
       document.getElementById("profitPercent").textContent = percent(summary.total_profit_loss_percent);
       document.getElementById("profitPercent").className = `value ${classFor(summary.total_profit_loss_percent)}`;
       renderSidebar(summary, positions, watchlist);
+      renderSidebarUs(usWatchlist);
 
       const warning = document.getElementById("warning");
       const warnings = summary.warnings || [];
@@ -2239,7 +2255,7 @@
       ctx.fill();
       ctx.stroke();
       lines.forEach((line, index) => {
-        ctx.fillStyle = index === 0 ? color : cssVar("--text");
+        ctx.fillStyle = index === 0 ? color : "#f8fafc";
         ctx.font = index === 0 ? "700 12px Microsoft JhengHei, sans-serif" : "12px Microsoft JhengHei, sans-serif";
         ctx.fillText(line, boxX + 9, boxY + 18 + index * 18);
       });
