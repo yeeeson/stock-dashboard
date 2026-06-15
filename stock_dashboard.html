@@ -33,6 +33,11 @@
       --series-4: #9f7aea;
       --series-5: #ff7849;
       --series-6: #38bdf8;
+      --ma-5: #facc15;
+      --ma-20: #fb923c;
+      --ma-60: #a78bfa;
+      --ma-120: #38bdf8;
+      --ma-240: #94a3b8;
     }
     body.light {
       --bg: #eef2f8;
@@ -61,6 +66,11 @@
       --series-4: #7c3aed;
       --series-5: #c2410c;
       --series-6: #0891b2;
+      --ma-5: #ca8a04;
+      --ma-20: #ea580c;
+      --ma-60: #7c3aed;
+      --ma-120: #0284c7;
+      --ma-240: #64748b;
     }
     body {
       margin: 0;
@@ -108,6 +118,59 @@
       gap: 8px;
       justify-content: flex-end;
       align-items: center;
+    }
+    .page-tabs {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      height: 40px;
+      padding: 3px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-2);
+    }
+    .page-tab {
+      height: 32px;
+      min-width: 62px;
+      border-radius: 6px;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      padding: 0 12px;
+      font-size: 13px;
+      font-weight: 850;
+    }
+    .page-tab.active {
+      background: var(--accent);
+      color: #ffffff;
+      box-shadow: 0 6px 14px color-mix(in srgb, var(--accent) 22%, transparent);
+    }
+    [data-page] {
+      display: none !important;
+    }
+    body[data-market-page="tw"] [data-page~="tw"],
+    body[data-market-page="us"] [data-page~="us"] {
+      display: block !important;
+    }
+    body[data-market-page="tw"] .rail-nav a[data-page~="tw"],
+    body[data-market-page="us"] .rail-nav a[data-page~="us"] {
+      display: grid !important;
+    }
+    body[data-market-page="tw"] .kpis[data-page~="tw"] {
+      display: grid !important;
+    }
+    body[data-market-page="tw"] .dashboard-layout[data-page~="tw"],
+    body[data-market-page="us"] .dashboard-layout[data-page~="us"] {
+      display: flex !important;
+    }
+    body[data-market-page="tw"] .side-column[data-page~="tw"] {
+      display: flex !important;
+    }
+    body[data-market-page="tw"] .sector-watchlist-stack[data-page~="tw"] {
+      display: grid !important;
+    }
+    body[data-market-page="us"] .us-page-stack[data-page~="us"] {
+      display: grid !important;
     }
     select,
     button {
@@ -404,6 +467,11 @@
     .market-trend-card .mini-chart {
       height: 520px;
     }
+    .us-page-stack {
+      display: grid;
+      gap: 12px;
+      margin-top: 10px;
+    }
     .allocation-layout {
       display: grid;
       grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
@@ -538,6 +606,28 @@
     .market-index-value small {
       font-size: 11px;
       font-weight: 700;
+    }
+    .ma-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 8px 0 10px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+    .ma-legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+    .ma-legend i {
+      width: 18px;
+      height: 2px;
+      border-radius: 99px;
+      display: inline-block;
+      background: var(--ma-color);
     }
     .legend {
       display: grid;
@@ -1037,7 +1127,7 @@
     }
   </style>
 </head>
-<body>
+<body data-market-page="tw">
   <div class="app-shell">
     <header class="app-header">
       <div>
@@ -1045,6 +1135,10 @@
         <p class="sub" id="subtitle">讀取中</p>
       </div>
       <div class="toolbar">
+        <div class="page-tabs" aria-label="市場頁面切換">
+          <button class="page-tab active" type="button" data-page-button="tw">台股</button>
+          <button class="page-tab" type="button" data-page-button="us">美股</button>
+        </div>
         <button class="theme-button" id="railToggleButton" type="button" title="收合左側欄" aria-label="收合左側欄">☰</button>
         <select id="rangeSelect" aria-label="趨勢區間">
           <option value="30">30 日</option>
@@ -1066,11 +1160,13 @@
         <div class="rail-section">
           <div class="rail-title">導覽</div>
           <nav class="rail-nav">
-            <a href="#trendSection"><span class="nav-icon">⌁</span><span>趨勢線</span><span>Chart</span></a>
-            <a href="#positionsSection"><span class="nav-icon">▦</span><span>持股明細</span><span>Holdings</span></a>
-            <a href="#analysisSection"><span class="nav-icon">◇</span><span>投資分析</span><span>Notes</span></a>
-            <a href="#watchlistSection"><span class="nav-icon">◎</span><span>觀察名單</span><span>Watch</span></a>
-            <a href="#newsSection"><span class="nav-icon">⌕</span><span>持股新聞</span><span>News</span></a>
+            <a href="#trendSection" data-page="tw"><span class="nav-icon">⌁</span><span>趨勢線</span><span>Chart</span></a>
+            <a href="#positionsSection" data-page="tw"><span class="nav-icon">▦</span><span>持股明細</span><span>Holdings</span></a>
+            <a href="#analysisSection" data-page="tw"><span class="nav-icon">◇</span><span>投資分析</span><span>Notes</span></a>
+            <a href="#watchlistSection" data-page="tw"><span class="nav-icon">◎</span><span>觀察名單</span><span>Watch</span></a>
+            <a href="#newsSection" data-page="tw"><span class="nav-icon">⌕</span><span>持股新聞</span><span>News</span></a>
+            <a href="#usWatchlistSection" data-page="us"><span class="nav-icon">◎</span><span>美股觀察</span><span>US Watch</span></a>
+            <a href="#usNewsSection" data-page="us"><span class="nav-icon">⌕</span><span>美國事件</span><span>US News</span></a>
           </nav>
         </div>
         <div class="rail-section">
@@ -1089,7 +1185,7 @@
 
       <main class="content" id="overview">
 
-    <div class="kpis">
+    <div class="kpis" data-page="tw">
       <div class="card"><div class="label">總估計淨值</div><div class="value" id="marketValue">0 元</div></div>
       <div class="card"><div class="label">總含費成本</div><div class="value" id="totalCost">0 元</div></div>
       <div class="card"><div class="label">未實現損益</div><div class="value" id="profitLoss">0 元</div></div>
@@ -1097,9 +1193,9 @@
       <div class="card"><div class="label">總損益率</div><div class="value" id="profitPercent">0%</div></div>
     </div>
 
-    <div class="dashboard-layout">
+    <div class="dashboard-layout" data-page="tw us">
       <div class="primary-column">
-        <section class="card trend-card" id="trendSection">
+        <section class="card trend-card" id="trendSection" data-page="tw">
           <div class="chart-head">
             <div class="label">趨勢線</div>
             <button class="secondary-button" id="expandTrendButton" type="button">⛶ 放大</button>
@@ -1113,7 +1209,7 @@
           </div>
         </section>
 
-        <section class="card allocation-card">
+        <section class="card allocation-card" data-page="tw">
           <div class="chart-head">
             <div>
               <div class="label">持股配置</div>
@@ -1130,29 +1226,43 @@
         </section>
 
         <div class="market-grid">
-          <section class="card market-trend-card">
+          <section class="card market-trend-card" data-page="tw">
             <div class="chart-head">
               <div>
                 <div class="label">台股大盤趨勢</div>
-                <div class="note">線圖直接使用真實點位，右側顯示最新數值與 20 日變化。</div>
+                <div class="note">每列使用真實點位；右側為最新收盤點位與近 20 個交易日漲跌幅。</div>
               </div>
             </div>
             <canvas class="mini-chart" id="taiwanMarketIndexChart"></canvas>
+            <div class="ma-legend" aria-label="大盤均線顏色">
+              <span><i style="--ma-color:var(--ma-5)"></i>MA5</span>
+              <span><i style="--ma-color:var(--ma-20)"></i>MA20</span>
+              <span><i style="--ma-color:var(--ma-60)"></i>MA60</span>
+              <span><i style="--ma-color:var(--ma-120)"></i>MA120</span>
+              <span><i style="--ma-color:var(--ma-240)"></i>MA240</span>
+            </div>
             <div class="compact-legend market-index-legend" id="taiwanMarketIndexLegend"></div>
           </section>
-          <section class="card market-trend-card">
+          <section class="card market-trend-card" data-page="us">
             <div class="chart-head">
               <div>
                 <div class="label">美股大盤趨勢</div>
-                <div class="note">線圖直接使用真實點位，右側顯示最新數值與 20 日變化。</div>
+                <div class="note">每列使用真實點位；右側為最新收盤點位與近 20 個交易日漲跌幅。</div>
               </div>
             </div>
             <canvas class="mini-chart" id="usMarketIndexChart"></canvas>
+            <div class="ma-legend" aria-label="大盤均線顏色">
+              <span><i style="--ma-color:var(--ma-5)"></i>MA5</span>
+              <span><i style="--ma-color:var(--ma-20)"></i>MA20</span>
+              <span><i style="--ma-color:var(--ma-60)"></i>MA60</span>
+              <span><i style="--ma-color:var(--ma-120)"></i>MA120</span>
+              <span><i style="--ma-color:var(--ma-240)"></i>MA240</span>
+            </div>
             <div class="compact-legend market-index-legend" id="usMarketIndexLegend"></div>
           </section>
         </div>
 
-        <section class="card positions-card" id="positionsSection">
+        <section class="card positions-card" id="positionsSection" data-page="tw">
           <div class="label">持股明細</div>
           <div class="table-wrap">
             <table>
@@ -1177,7 +1287,7 @@
           </div>
         </section>
 
-        <section class="card watchlist-card" id="watchlistSection">
+        <section class="card watchlist-card" id="watchlistSection" data-page="tw">
           <div class="label">觀察名單</div>
           <div class="table-wrap">
             <table>
@@ -1192,6 +1302,7 @@
                   <th>MA20 乖離</th>
                   <th>MA60</th>
                   <th>MA60 乖離</th>
+                  <th>MA120</th>
                   <th>MA240</th>
                   <th>RSI14</th>
                   <th>20 日報酬</th>
@@ -1204,15 +1315,15 @@
           <div class="note">觀察名單由固定候選池用技術面條件篩選，只代表值得追蹤，不代表適合買進。</div>
         </section>
 
-        <div class="band-heading">
+        <div class="band-heading" data-page="tw">
           <strong>分領域觀察名單</strong>
           <span>每個領域依技術面分數排序列出前 5 檔，這是追蹤清單，不代表買進建議。</span>
         </div>
-        <div class="sector-watchlist-stack" id="sectorWatchlists" aria-label="分領域觀察名單"></div>
+        <div class="sector-watchlist-stack" id="sectorWatchlists" data-page="tw" aria-label="分領域觀察名單"></div>
 
       </div>
 
-      <div class="side-column">
+      <div class="side-column" data-page="tw">
         <section class="card analysis-card" id="analysisSection">
           <div class="label">投資分析參考</div>
           <div class="analysis-list" id="analysisRows"></div>
@@ -1250,7 +1361,7 @@
         <section class="card terms-card">
           <div class="label">專業術語說明</div>
           <div class="term-grid">
-            <div class="term-item"><strong>MA5 / MA20 / MA60 / MA240</strong><span>Moving Average，移動平均線。分別代表近 5、20、60、240 個交易日平均收盤價，常用來看短線、中線與長線趨勢。</span></div>
+            <div class="term-item"><strong>MA5 / MA20 / MA60 / MA120 / MA240</strong><span>Moving Average，移動平均線。分別代表近 5、20、60、120、240 個交易日平均收盤價，常用來看短線、中線與長線趨勢。</span></div>
             <div class="term-item"><strong>RSI14</strong><span>Relative Strength Index，相對強弱指標。用近 14 日漲跌衡量動能，數值太高通常代表短線偏熱，太低代表偏弱或可能超跌。</span></div>
             <div class="term-item"><strong>20 日報酬</strong><span>最近 20 個交易日的價格漲跌幅，用來看近一個月左右的趨勢強弱。</span></div>
             <div class="term-item"><strong>20 日年化波動</strong><span>用近 20 日價格變動推估一年化波動程度，數值越高代表價格震盪越大。</span></div>
@@ -1263,7 +1374,8 @@
       </div>
     </div>
 
-    <section class="card us-watchlist-card full-width-section">
+    <div class="us-page-stack" data-page="us">
+    <section class="card us-watchlist-card full-width-section" id="usWatchlistSection">
       <div class="label">美股指標觀察</div>
       <div class="table-wrap">
         <table>
@@ -1278,6 +1390,7 @@
               <th>MA20 乖離</th>
               <th>MA60</th>
               <th>MA60 乖離</th>
+              <th>MA120</th>
               <th>MA240</th>
               <th>RSI14</th>
               <th>20 日報酬</th>
@@ -1289,6 +1402,13 @@
       </div>
       <div class="note">美股資料只做指標追蹤與技術面比較，價格單位為 USD，不納入目前台股持股損益。</div>
     </section>
+
+    <section class="card news-card full-width-section" id="usNewsSection">
+      <div class="label">美國市場新聞事件</div>
+      <div class="note">聚焦可能影響美股大盤、科技股與半導體情緒的近期事件。</div>
+      <div class="news-list" id="usMarketNewsRows"></div>
+    </section>
+    </div>
 
         <section class="card error" id="error" hidden></section>
       </main>
@@ -1317,10 +1437,22 @@
     const user = params.get("user") || "";
     const token = params.get("token") || "";
     const colorVars = ["--series-1", "--series-2", "--series-3", "--series-4", "--series-5", "--series-6"];
+    const marketMaLines = [
+      { key: "ma5", label: "MA5", color: "--ma-5" },
+      { key: "ma20", label: "MA20", color: "--ma-20" },
+      { key: "ma60", label: "MA60", color: "--ma-60" },
+      { key: "ma120", label: "MA120", color: "--ma-120" },
+      { key: "ma240", label: "MA240", color: "--ma-240" },
+    ];
     let latestPayload = null;
+    let activeMarketPage = params.get("market") === "us" ? "us" : "tw";
     const trendHoverState = {
       trendChart: null,
       expandedTrendChart: null,
+    };
+    const marketHoverState = {
+      taiwanMarketIndexChart: null,
+      usMarketIndexChart: null,
     };
     function cssVar(name) {
       return getComputedStyle(document.body).getPropertyValue(name).trim();
@@ -1450,6 +1582,38 @@
       } catch {
         return "";
       }
+    }
+    function applyMarketPage(page) {
+      activeMarketPage = page === "us" ? "us" : "tw";
+      document.body.dataset.marketPage = activeMarketPage;
+      for (const button of document.querySelectorAll("[data-page-button]")) {
+        const active = button.dataset.pageButton === activeMarketPage;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", active ? "true" : "false");
+      }
+      try {
+        localStorage.setItem("stock-dashboard-market-page", activeMarketPage);
+      } catch {
+        // Ignore storage failures in private browsing or strict file contexts.
+      }
+      if (latestPayload) {
+        window.requestAnimationFrame(() => {
+          drawTrend(latestPayload);
+          drawAllocation(latestPayload.positions || []);
+          drawMarketTrends(latestPayload.market_trend || {});
+        });
+      }
+    }
+    function initialMarketPage() {
+      if (params.get("market") === "us") return "us";
+      if (params.get("market") === "tw") return "tw";
+      try {
+        const saved = localStorage.getItem("stock-dashboard-market-page");
+        if (saved === "us" || saved === "tw") return saved;
+      } catch {
+        // Ignore storage failures and use Taiwan page as default.
+      }
+      return "tw";
     }
     function normalizeNewsTitleKey(title) {
       return String(title || "")
@@ -1649,6 +1813,8 @@
     function render(payload) {
       trendHoverState.trendChart = null;
       trendHoverState.expandedTrendChart = null;
+      marketHoverState.taiwanMarketIndexChart = null;
+      marketHoverState.usMarketIndexChart = null;
       const summary = payload.summary || {};
       const positions = payload.positions || [];
       const records = payload.investment_records || [];
@@ -1658,6 +1824,7 @@
       const usWatchlist = payload.us_watchlist || [];
       const marketTrend = payload.market_trend || {};
       const news = payload.news || [];
+      const usMarketNews = payload.us_market_news || [];
       const generatedAt = payload.generated_at ? new Date(payload.generated_at).toLocaleString() : "無資料";
       document.getElementById("subtitle").textContent = `最新報價日 ${displayDate(summary.latest_quote_date)}，即時報價 ${summary.realtime_quote_count || 0}/${summary.quote_count || 0} 檔，更新時間 ${generatedAt}`;
       document.getElementById("marketValue").textContent = money(summary.total_market_value);
@@ -1736,13 +1903,14 @@
             <td>${percent(row.technical?.ma20_bias)}</td>
             <td>${numberText(row.technical?.ma60, 2)}</td>
             <td>${percent(row.technical?.ma60_bias)}</td>
+            <td>${numberText(row.technical?.ma120, 2)}</td>
             <td>${numberText(row.technical?.ma240, 2)}</td>
             <td>${numberText(row.technical?.rsi14, 2)}</td>
             <td>${percent(row.technical?.return20)}</td>
             <td class="reason-cell">${escapeHtml(reasonText(row.reasons))}</td>
           </tr>
         `).join("")
-        : `<tr><td colspan="13" class="empty">目前沒有符合條件的觀察標的</td></tr>`;
+        : `<tr><td colspan="14" class="empty">目前沒有符合條件的觀察標的</td></tr>`;
 
       renderSectorWatchlists(sectorWatchlists);
       renderUsWatchlist(usWatchlist);
@@ -1766,6 +1934,19 @@
         `).join("")
         : `<div class="empty">最近沒有找到持股相關新聞</div>`;
 
+      const uniqueUsMarketNews = dedupeNews(usMarketNews);
+      document.getElementById("usMarketNewsRows").innerHTML = uniqueUsMarketNews.length
+        ? uniqueUsMarketNews.map((row) => `
+          <div class="news-item">
+            <div class="news-meta">
+              <span>${displayNewsDate(row.date)}</span>
+              <span>${escapeHtml(row.source || "Yahoo Finance")}</span>
+            </div>
+            <div class="news-item-title">${newsTitle(row)}</div>
+          </div>
+        `).join("")
+        : `<div class="empty">最近沒有找到美國市場事件新聞</div>`;
+
       renderLegend(positions);
       drawTrend(payload);
     }
@@ -1781,6 +1962,7 @@
           <td>${percent(row.technical?.ma20_bias)}</td>
           <td>${numberText(row.technical?.ma60, 2)}</td>
           <td>${percent(row.technical?.ma60_bias)}</td>
+          <td>${numberText(row.technical?.ma120, 2)}</td>
           <td>${numberText(row.technical?.ma240, 2)}</td>
           <td>${numberText(row.technical?.rsi14, 2)}</td>
           <td>${percent(row.technical?.return20)}</td>
@@ -1796,6 +1978,7 @@
         `MA20 乖離 ${percent(technical.ma20_bias)}`,
         `MA60 ${numberText(technical.ma60, 2)}`,
         `MA60 乖離 ${percent(technical.ma60_bias)}`,
+        `MA120 ${numberText(technical.ma120, 2)}`,
         `RSI14 ${numberText(technical.rsi14, 2)}`,
         `20 日 ${percent(technical.return20)}`,
       ].join("，");
@@ -1829,13 +2012,14 @@
             <td>${percent(row.technical?.ma20_bias)}</td>
             <td>${numberText(row.technical?.ma60, 2)}</td>
             <td>${percent(row.technical?.ma60_bias)}</td>
+            <td>${numberText(row.technical?.ma120, 2)}</td>
             <td>${numberText(row.technical?.ma240, 2)}</td>
             <td>${numberText(row.technical?.rsi14, 2)}</td>
             <td>${percent(row.technical?.return20)}</td>
             <td class="reason-cell">${escapeHtml(reasonText(row.reasons))}</td>
           </tr>
         `).join("")
-        : `<tr><td colspan="13" class="empty">目前沒有美股觀察資料</td></tr>`;
+        : `<tr><td colspan="14" class="empty">目前沒有美股觀察資料</td></tr>`;
     }
     function renderSectorWatchlists(groups) {
       document.getElementById("sectorWatchlists").innerHTML = groups.length
@@ -1989,50 +2173,106 @@
         `).join("")
         : `<div class="empty">目前沒有大盤資料</div>`;
     }
+    function marketSeriesFor(item) {
+      const values = item.values || [];
+      return values.length ? values : (item.normalized_values || []);
+    }
+    function marketPanelLayout(width, height, itemCount) {
+      const pad = { left: 58, right: 16, top: 18, bottom: 30 };
+      const panelGap = 24;
+      const usableHeight = Math.max(1, height - pad.top - pad.bottom - panelGap * Math.max(0, itemCount - 1));
+      const panelHeight = Math.max(80, usableHeight / Math.max(1, itemCount));
+      return { pad, panelGap, panelHeight, plotW: Math.max(1, width - pad.left - pad.right) };
+    }
+    function marketPanelInfo(item, index, layout) {
+      const closeValues = marketSeriesFor(item);
+      const maValues = marketMaLines.flatMap((line) => item.moving_averages?.[line.key] || []);
+      const numericValues = [...closeValues, ...maValues].filter((value) => value !== null);
+      if (!numericValues.length) return null;
+      const rawMin = Math.min(...numericValues);
+      const rawMax = Math.max(...numericValues);
+      const padding = Math.max((rawMax - rawMin) * 0.12, Math.abs(rawMax) * 0.006, 1);
+      const min = rawMin - padding;
+      const max = rawMax + padding;
+      const span = Math.max(1, max - min);
+      const panelTop = layout.pad.top + index * (layout.panelHeight + layout.panelGap);
+      return {
+        closeValues,
+        min,
+        max,
+        span,
+        panelTop,
+        yFor: (value) => panelTop + ((max - value) / span) * layout.panelHeight,
+      };
+    }
+    function drawMarketTooltip(ctx, item, dates, hover, color, width, height, layout, info) {
+      if (!hover || hover.itemIndex === null || hover.dateIndex === null) return;
+      const dateIndex = hover.dateIndex;
+      const x = layout.pad.left + (dates.length === 1 ? 0 : (layout.plotW * dateIndex) / (dates.length - 1));
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(x, info.panelTop);
+      ctx.lineTo(x, info.panelTop + layout.panelHeight);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      const lines = [
+        `${item.display_name || item.symbol || ""} ${displayDate(dates[dateIndex])}`,
+        `點位 ${numberText(info.closeValues[dateIndex], 2)}`,
+        ...marketMaLines.map((line) => `${line.label} ${numberText(item.moving_averages?.[line.key]?.[dateIndex], 2)}`),
+      ];
+      ctx.font = "12px Microsoft JhengHei, sans-serif";
+      const boxW = Math.max(...lines.map((line) => ctx.measureText(line).width)) + 18;
+      const boxH = lines.length * 18 + 14;
+      let boxX = x + 12;
+      let boxY = info.panelTop + 8;
+      if (boxX + boxW > width - layout.pad.right) boxX = x - boxW - 12;
+      if (boxX < layout.pad.left) boxX = layout.pad.left;
+      if (boxY + boxH > height - layout.pad.bottom) boxY = height - layout.pad.bottom - boxH;
+      ctx.fillStyle = cssVar("--tooltip-bg");
+      ctx.strokeStyle = cssVar("--tooltip-border");
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(boxX, boxY, boxW, boxH, 8);
+      ctx.fill();
+      ctx.stroke();
+      lines.forEach((line, index) => {
+        ctx.fillStyle = index === 0 ? color : cssVar("--text");
+        ctx.font = index === 0 ? "700 12px Microsoft JhengHei, sans-serif" : "12px Microsoft JhengHei, sans-serif";
+        ctx.fillText(line, boxX + 9, boxY + 18 + index * 18);
+      });
+      ctx.restore();
+    }
     function drawMarketIndexTrend(marketTrend, canvasId, colorOffset = 1) {
       const canvas = document.getElementById(canvasId);
       const { ctx, width, height } = resizeCanvas(canvas);
       ctx.clearRect(0, 0, width, height);
       const dates = marketTrend?.dates || [];
       const items = marketTrend?.items || [];
-      const seriesFor = (item) => {
-        const values = item.values || [];
-        return values.length ? values : (item.normalized_values || []);
-      };
-      if (!dates.length || !items.some((item) => seriesFor(item).some((value) => value !== null))) {
+      if (!dates.length || !items.some((item) => marketSeriesFor(item).some((value) => value !== null))) {
         ctx.fillStyle = cssVar("--chart-axis");
         ctx.font = "13px sans-serif";
         ctx.fillText("沒有可用大盤資料", 20, 34);
         return;
       }
-      const pad = { left: 58, right: 16, top: 18, bottom: 30 };
-      const panelGap = 22;
-      const usableHeight = Math.max(1, height - pad.top - pad.bottom - panelGap * Math.max(0, items.length - 1));
-      const panelHeight = Math.max(80, usableHeight / Math.max(1, items.length));
-      const plotW = Math.max(1, width - pad.left - pad.right);
-      const xFor = (index) => pad.left + (dates.length === 1 ? 0 : (plotW * index) / (dates.length - 1));
+      const layout = marketPanelLayout(width, height, items.length);
+      const xFor = (index) => layout.pad.left + (dates.length === 1 ? 0 : (layout.plotW * index) / (dates.length - 1));
       ctx.font = "12px Microsoft JhengHei, sans-serif";
       items.forEach((item, index) => {
-        const values = seriesFor(item);
-        const numericValues = values.filter((value) => value !== null);
-        if (!numericValues.length) return;
-        const rawMin = Math.min(...numericValues);
-        const rawMax = Math.max(...numericValues);
-        const padding = Math.max((rawMax - rawMin) * 0.12, Math.abs(rawMax) * 0.006, 1);
-        const min = rawMin - padding;
-        const max = rawMax + padding;
-        const span = Math.max(1, max - min);
-        const panelTop = pad.top + index * (panelHeight + panelGap);
-        const yFor = (value) => panelTop + ((max - value) / span) * panelHeight;
+        const info = marketPanelInfo(item, index, layout);
+        if (!info) return;
+        const values = info.closeValues;
 
         ctx.strokeStyle = cssVar("--chart-grid");
         ctx.fillStyle = cssVar("--chart-axis");
         for (let step = 0; step <= 2; step += 1) {
-          const value = min + (span * step) / 2;
-          const y = yFor(value);
+          const value = info.min + (info.span * step) / 2;
+          const y = info.yFor(value);
           ctx.beginPath();
-          ctx.moveTo(pad.left, y);
-          ctx.lineTo(width - pad.right, y);
+          ctx.moveTo(layout.pad.left, y);
+          ctx.lineTo(width - layout.pad.right, y);
           ctx.stroke();
           ctx.fillText(axisNumberText(value), 4, y + 4);
         }
@@ -2047,7 +2287,7 @@
             return;
           }
           const x = xFor(valueIndex);
-          const y = yFor(value);
+          const y = info.yFor(value);
           if (!started) {
             ctx.moveTo(x, y);
             started = true;
@@ -2057,22 +2297,85 @@
         });
         ctx.stroke();
 
+        for (const line of marketMaLines) {
+          const maValues = item.moving_averages?.[line.key] || [];
+          if (!maValues.some((value) => value !== null)) continue;
+          ctx.beginPath();
+          ctx.strokeStyle = cssVar(line.color);
+          ctx.globalAlpha = 0.72;
+          ctx.lineWidth = 1.35;
+          let maStarted = false;
+          maValues.forEach((value, valueIndex) => {
+            if (value === null) {
+              maStarted = false;
+              return;
+            }
+            const x = xFor(valueIndex);
+            const y = info.yFor(value);
+            if (!maStarted) {
+              ctx.moveTo(x, y);
+              maStarted = true;
+            } else {
+              ctx.lineTo(x, y);
+            }
+          });
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+        }
+
         const latestValue = [...values].reverse().find((value) => value !== null);
         ctx.fillStyle = seriesColor(index + colorOffset);
         ctx.font = "700 12px Microsoft JhengHei, sans-serif";
-        ctx.fillText(item.display_name || item.symbol || "", pad.left, panelTop - 6);
+        ctx.fillText(item.display_name || item.symbol || "", layout.pad.left, info.panelTop - 6);
         if (latestValue !== undefined) {
           ctx.textAlign = "right";
-          ctx.fillText(axisNumberText(latestValue), width - pad.right, panelTop - 6);
+          ctx.fillText(axisNumberText(latestValue), width - layout.pad.right, info.panelTop - 6);
           ctx.textAlign = "start";
+        }
+        if (marketHoverState[canvasId]?.itemIndex === index) {
+          drawMarketTooltip(ctx, item, dates, marketHoverState[canvasId], seriesColor(index + colorOffset), width, height, layout, info);
         }
       });
       ctx.fillStyle = cssVar("--chart-axis");
       ctx.font = "12px Microsoft JhengHei, sans-serif";
-      ctx.fillText(displayDate(dates[0]), pad.left, height - 8);
+      ctx.fillText(displayDate(dates[0]), layout.pad.left, height - 8);
       ctx.textAlign = "right";
-      ctx.fillText(displayDate(dates.at(-1)), width - pad.right, height - 8);
+      ctx.fillText(displayDate(dates.at(-1)), width - layout.pad.right, height - 8);
       ctx.textAlign = "start";
+    }
+    function findMarketPoint(marketTrend, canvasId, clientX, clientY) {
+      const canvas = document.getElementById(canvasId);
+      const rect = canvas.getBoundingClientRect();
+      const xScale = canvas.width / rect.width;
+      const yScale = canvas.height / rect.height;
+      const pointerX = (clientX - rect.left) * xScale;
+      const pointerY = (clientY - rect.top) * yScale;
+      const dates = marketTrend?.dates || [];
+      const items = marketTrend?.items || [];
+      if (!dates.length || !items.length) return null;
+      const layout = marketPanelLayout(canvas.width, canvas.height, items.length);
+      const plotStart = layout.pad.left;
+      const plotEnd = canvas.width - layout.pad.right;
+      if (pointerX < plotStart || pointerX > plotEnd) return null;
+      const dateIndex = Math.max(0, Math.min(dates.length - 1, Math.round(((pointerX - plotStart) / layout.plotW) * (dates.length - 1))));
+      for (let index = 0; index < items.length; index += 1) {
+        const info = marketPanelInfo(items[index], index, layout);
+        if (!info) continue;
+        const top = info.panelTop - 16;
+        const bottom = info.panelTop + layout.panelHeight + 12;
+        if (pointerY >= top && pointerY <= bottom) return { itemIndex: index, dateIndex };
+      }
+      return null;
+    }
+    function updateMarketHover(canvasId, group, colorOffset, event) {
+      if (!latestPayload) return;
+      const marketTrend = marketTrendGroup(latestPayload.market_trend || {}, group);
+      const hit = findMarketPoint(marketTrend, canvasId, event.clientX, event.clientY);
+      const current = marketHoverState[canvasId];
+      if ((current?.itemIndex ?? null) === (hit?.itemIndex ?? null) && (current?.dateIndex ?? null) === (hit?.dateIndex ?? null)) return;
+      marketHoverState[canvasId] = hit;
+      document.getElementById(canvasId).style.cursor = hit ? "crosshair" : "default";
+      drawMarketIndexTrend(marketTrend, canvasId, colorOffset);
     }
     function legendHtml(positions) {
       const rows = [
@@ -2322,6 +2625,9 @@
     document.getElementById("railToggleButton").addEventListener("click", () => {
       applyRailCollapsed(!document.body.classList.contains("rail-collapsed"));
     });
+    for (const button of document.querySelectorAll("[data-page-button]")) {
+      button.addEventListener("click", () => applyMarketPage(button.dataset.pageButton));
+    }
     document.getElementById("expandTrendButton").addEventListener("click", openTrendModal);
     document.getElementById("closeTrendButton").addEventListener("click", closeTrendModal);
     for (const canvasId of ["trendChart", "expandedTrendChart"]) {
@@ -2341,6 +2647,26 @@
         if (touch) updateTrendHover(canvasId, touch);
       }, { passive: true });
     }
+    for (const config of [
+      { canvasId: "taiwanMarketIndexChart", group: "tw", colorOffset: 0 },
+      { canvasId: "usMarketIndexChart", group: "us", colorOffset: 1 },
+    ]) {
+      const canvas = document.getElementById(config.canvasId);
+      canvas.addEventListener("mousemove", (event) => updateMarketHover(config.canvasId, config.group, config.colorOffset, event));
+      canvas.addEventListener("mouseleave", () => {
+        marketHoverState[config.canvasId] = null;
+        canvas.style.cursor = "default";
+        if (latestPayload) drawMarketIndexTrend(marketTrendGroup(latestPayload.market_trend || {}, config.group), config.canvasId, config.colorOffset);
+      });
+      canvas.addEventListener("touchstart", (event) => {
+        const touch = event.touches[0];
+        if (touch) updateMarketHover(config.canvasId, config.group, config.colorOffset, touch);
+      }, { passive: true });
+      canvas.addEventListener("touchmove", (event) => {
+        const touch = event.touches[0];
+        if (touch) updateMarketHover(config.canvasId, config.group, config.colorOffset, touch);
+      }, { passive: true });
+    }
     document.getElementById("trendModal").addEventListener("click", (event) => {
       if (event.target.id === "trendModal") closeTrendModal();
     });
@@ -2357,6 +2683,7 @@
     });
     applyTheme(initialTheme());
     applyRailCollapsed(initialRailCollapsed());
+    applyMarketPage(initialMarketPage());
     loadDashboard();
   </script>
 </body>
