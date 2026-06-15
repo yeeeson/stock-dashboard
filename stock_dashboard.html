@@ -402,7 +402,7 @@
       display: block;
     }
     .market-trend-card .mini-chart {
-      height: 430px;
+      height: 520px;
     }
     .allocation-layout {
       display: grid;
@@ -1998,38 +1998,47 @@
         const values = item.values || [];
         return values.length ? values : (item.normalized_values || []);
       };
-      const allValues = items.flatMap((item) => seriesFor(item).filter((value) => value !== null));
-      if (!dates.length || !allValues.length) {
+      if (!dates.length || !items.some((item) => seriesFor(item).some((value) => value !== null))) {
         ctx.fillStyle = cssVar("--chart-axis");
         ctx.font = "13px sans-serif";
         ctx.fillText("沒有可用大盤資料", 20, 34);
         return;
       }
-      const min = Math.min(...allValues);
-      const max = Math.max(...allValues);
-      const span = Math.max(1, max - min);
-      const pad = { left: 42, right: 12, top: 14, bottom: 28 };
+      const pad = { left: 58, right: 16, top: 18, bottom: 30 };
+      const panelGap = 22;
+      const usableHeight = Math.max(1, height - pad.top - pad.bottom - panelGap * Math.max(0, items.length - 1));
+      const panelHeight = Math.max(80, usableHeight / Math.max(1, items.length));
       const plotW = Math.max(1, width - pad.left - pad.right);
-      const plotH = Math.max(1, height - pad.top - pad.bottom);
       const xFor = (index) => pad.left + (dates.length === 1 ? 0 : (plotW * index) / (dates.length - 1));
-      const yFor = (value) => pad.top + ((max - value) / span) * plotH;
-      ctx.strokeStyle = cssVar("--chart-grid");
-      ctx.fillStyle = cssVar("--chart-axis");
-      ctx.font = "12px sans-serif";
-      for (let step = 0; step <= 3; step += 1) {
-        const value = min + (span * step) / 3;
-        const y = yFor(value);
-        ctx.beginPath();
-        ctx.moveTo(pad.left, y);
-        ctx.lineTo(width - pad.right, y);
-        ctx.stroke();
-        ctx.fillText(axisNumberText(value), 4, y + 4);
-      }
+      ctx.font = "12px Microsoft JhengHei, sans-serif";
       items.forEach((item, index) => {
         const values = seriesFor(item);
+        const numericValues = values.filter((value) => value !== null);
+        if (!numericValues.length) return;
+        const rawMin = Math.min(...numericValues);
+        const rawMax = Math.max(...numericValues);
+        const padding = Math.max((rawMax - rawMin) * 0.12, Math.abs(rawMax) * 0.006, 1);
+        const min = rawMin - padding;
+        const max = rawMax + padding;
+        const span = Math.max(1, max - min);
+        const panelTop = pad.top + index * (panelHeight + panelGap);
+        const yFor = (value) => panelTop + ((max - value) / span) * panelHeight;
+
+        ctx.strokeStyle = cssVar("--chart-grid");
+        ctx.fillStyle = cssVar("--chart-axis");
+        for (let step = 0; step <= 2; step += 1) {
+          const value = min + (span * step) / 2;
+          const y = yFor(value);
+          ctx.beginPath();
+          ctx.moveTo(pad.left, y);
+          ctx.lineTo(width - pad.right, y);
+          ctx.stroke();
+          ctx.fillText(axisNumberText(value), 4, y + 4);
+        }
+
         ctx.beginPath();
         ctx.strokeStyle = seriesColor(index + colorOffset);
-        ctx.lineWidth = 2.4;
+        ctx.lineWidth = 2.3;
         let started = false;
         values.forEach((value, valueIndex) => {
           if (value === null) {
@@ -2046,8 +2055,19 @@
           }
         });
         ctx.stroke();
+
+        const latestValue = [...values].reverse().find((value) => value !== null);
+        ctx.fillStyle = seriesColor(index + colorOffset);
+        ctx.font = "700 12px Microsoft JhengHei, sans-serif";
+        ctx.fillText(item.display_name || item.symbol || "", pad.left, panelTop - 6);
+        if (latestValue !== undefined) {
+          ctx.textAlign = "right";
+          ctx.fillText(axisNumberText(latestValue), width - pad.right, panelTop - 6);
+          ctx.textAlign = "start";
+        }
       });
       ctx.fillStyle = cssVar("--chart-axis");
+      ctx.font = "12px Microsoft JhengHei, sans-serif";
       ctx.fillText(displayDate(dates[0]), pad.left, height - 8);
       ctx.textAlign = "right";
       ctx.fillText(displayDate(dates.at(-1)), width - pad.right, height - 8);
