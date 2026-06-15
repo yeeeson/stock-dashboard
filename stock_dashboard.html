@@ -1455,6 +1455,7 @@
       return String(title || "")
         .toLowerCase()
         .replace(/[｜|].*$/g, "")
+        .replace(/\s*[-－—–]\s*[^-－—–｜|]{2,30}$/g, "")
         .replace(/[【】「」『』"'“”‘’（）()［\]\[\]《》〈〉]/g, "")
         .replace(/\s+/g, "")
         .replace(/[，。；：、,.!?！？:;-]/g, "");
