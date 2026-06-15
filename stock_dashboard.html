@@ -733,6 +733,13 @@
       line-height: 1.5;
       overflow-wrap: anywhere;
     }
+    .news-summary {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.65;
+      overflow-wrap: anywhere;
+    }
     .sector-watchlist-stack {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -1959,6 +1966,7 @@
               <span>${escapeHtml(row.source || "Yahoo Finance")}</span>
             </div>
             <div class="news-item-title">${newsTitle(row)}</div>
+            <div class="news-summary">${escapeHtml(row.zh_summary || row.description || "")}</div>
           </div>
         `).join("")
         : `<div class="empty">最近沒有找到美國市場事件新聞</div>`;
@@ -2446,6 +2454,62 @@
       ctx.textBaseline = "middle";
       ctx.fillText(label, boxX + labelPadX, boxY + labelHeight / 2);
     }
+    function drawTrendPointTooltip(ctx, point, width, height, pad) {
+      const lines = [
+        `${point.label} ${displayDate(point.date)}`,
+        `估計淨值 ${money(point.value)}`,
+      ];
+      if (point.markerPrice !== null && point.markerPrice !== undefined) {
+        lines.push(`買入均價 ${numberText(point.markerPrice, 2)}`);
+      }
+      ctx.save();
+      ctx.font = "12px Microsoft JhengHei, sans-serif";
+      const boxW = Math.max(...lines.map((line) => ctx.measureText(line).width)) + 18;
+      const boxH = lines.length * 18 + 14;
+      let boxX = point.x + 12;
+      let boxY = point.y - boxH - 12;
+      if (boxX + boxW > width - pad.right) boxX = point.x - boxW - 12;
+      if (boxX < pad.left) boxX = pad.left;
+      if (boxY < pad.top) boxY = point.y + 12;
+      if (boxY + boxH > height - pad.bottom) boxY = height - pad.bottom - boxH;
+
+      ctx.strokeStyle = point.color;
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(point.x, pad.top);
+      ctx.lineTo(point.x, height - pad.bottom);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.beginPath();
+      ctx.arc(point.x, point.y, 5, 0, Math.PI * 2);
+      ctx.fillStyle = point.color;
+      ctx.fill();
+      ctx.strokeStyle = cssVar("--marker-stroke");
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = cssVar("--tooltip-bg");
+      ctx.strokeStyle = cssVar("--tooltip-border");
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      if (typeof ctx.roundRect === "function") {
+        ctx.roundRect(boxX, boxY, boxW, boxH, 8);
+      } else {
+        ctx.rect(boxX, boxY, boxW, boxH);
+      }
+      ctx.fill();
+      ctx.stroke();
+      lines.forEach((line, index) => {
+        ctx.fillStyle = index === 0 ? point.color : "#f8fafc";
+        ctx.font = index === 0 ? "700 12px Microsoft JhengHei, sans-serif" : "12px Microsoft JhengHei, sans-serif";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+        ctx.fillText(line, boxX + 9, boxY + 17 + index * 18);
+      });
+      ctx.restore();
+    }
 
     function drawTrend(payload, canvasId = "trendChart") {
       const canvas = document.getElementById(canvasId);
@@ -2466,9 +2530,11 @@
       const positions = payload.positions || [];
       const hover = trendHoverState[canvasId];
       const series = [
-        { name: "total", values: total, color: totalSeriesColor(), width: 3.2 },
+        { name: "total", label: "總淨值", symbol: null, values: total, color: totalSeriesColor(), width: 3.2 },
         ...positions.map((position, index) => ({
           name: position.symbol,
+          label: position.display_name || position.symbol,
+          symbol: position.symbol,
           values: bySymbol[position.symbol] || [],
           color: seriesColor(index),
           width: 2,
@@ -2546,11 +2612,27 @@
           ctx.arc(x, y, 5, 0, Math.PI * 2);
           ctx.fill();
           ctx.stroke();
-          if (hover && hover.symbol === position.symbol && hover.date === marker.date) {
-            drawMarkerTooltip(ctx, { x, y, price: marker.price }, width, height, pad);
-          }
         }
       });
+
+      if (hover && hover.seriesIndex !== null && hover.dateIndex !== null) {
+        const item = series[hover.seriesIndex];
+        const value = item?.values?.[hover.dateIndex];
+        if (item && value !== null && value !== undefined) {
+          const marker = item.symbol
+            ? (markersBySymbol[item.symbol] || []).find((row) => row.date === dates[hover.dateIndex])
+            : null;
+          drawTrendPointTooltip(ctx, {
+            x: xFor(hover.dateIndex),
+            y: yFor(Number(value)),
+            color: item.color,
+            label: item.label,
+            date: dates[hover.dateIndex],
+            value: Number(value),
+            markerPrice: marker?.price ?? null,
+          }, width, height, pad);
+        }
+      }
 
       ctx.fillStyle = cssVar("--chart-axis");
       ctx.textAlign = "left";
@@ -2587,34 +2669,29 @@
       const yFor = (value) => pad.top + plotH - ((value - min) / span) * plotH;
       const pointerX = clientX - rect.left;
       const pointerY = clientY - rect.top;
-      const hitRadius = 13;
+      const hitRadius = 16;
       let closest = null;
-      for (const position of positions) {
-        const markers = markersBySymbol[position.symbol] || [];
-        const valuesForSymbol = bySymbol[position.symbol] || [];
-        for (const marker of markers) {
-          const index = dates.indexOf(marker.date);
-          if (index < 0) continue;
-          const value = valuesForSymbol[index];
-          if (value === null || value === undefined) continue;
-          const x = xFor(index);
+      series.forEach((item, seriesIndex) => {
+        item.values.forEach((value, dateIndex) => {
+          if (value === null || value === undefined) return;
+          const x = xFor(dateIndex);
           const y = yFor(Number(value));
           const distance = Math.hypot(pointerX - x, pointerY - y);
           if (distance <= hitRadius && (!closest || distance < closest.distance)) {
-            closest = { symbol: position.symbol, date: marker.date, distance };
+            closest = { seriesIndex, dateIndex, distance };
           }
-        }
-      }
-      return closest ? { symbol: closest.symbol, date: closest.date } : null;
+        });
+      });
+      return closest ? { seriesIndex: closest.seriesIndex, dateIndex: closest.dateIndex } : null;
     }
 
     function updateTrendHover(canvasId, event) {
       if (!latestPayload) return;
       const hit = findTrendMarker(latestPayload, canvasId, event.clientX, event.clientY);
       const current = trendHoverState[canvasId];
-      if ((current?.symbol || null) === (hit?.symbol || null) && (current?.date || null) === (hit?.date || null)) return;
+      if ((current?.seriesIndex ?? null) === (hit?.seriesIndex ?? null) && (current?.dateIndex ?? null) === (hit?.dateIndex ?? null)) return;
       trendHoverState[canvasId] = hit;
-      document.getElementById(canvasId).style.cursor = hit ? "pointer" : "default";
+      document.getElementById(canvasId).style.cursor = hit ? "crosshair" : "default";
       drawTrend(latestPayload, canvasId);
     }
 
