@@ -38,6 +38,10 @@
       --ma-60: #a78bfa;
       --ma-120: #38bdf8;
       --ma-240: #94a3b8;
+      --tech-grid: rgba(79, 142, 247, 0.095);
+      --tech-grid-strong: rgba(56, 189, 248, 0.16);
+      --tech-sheen: rgba(79, 142, 247, 0.18);
+      --tech-corner: rgba(56, 189, 248, 0.42);
     }
     body.light {
       --bg: #eef2f8;
@@ -71,6 +75,10 @@
       --ma-60: #7c3aed;
       --ma-120: #0284c7;
       --ma-240: #64748b;
+      --tech-grid: rgba(37, 99, 235, 0.07);
+      --tech-grid-strong: rgba(8, 145, 178, 0.12);
+      --tech-sheen: rgba(37, 99, 235, 0.10);
+      --tech-corner: rgba(37, 99, 235, 0.26);
     }
     body {
       margin: 0;
@@ -88,8 +96,26 @@
       grid-template-rows: 64px 1fr;
       height: 100vh;
       min-height: 0;
+      position: relative;
+      isolation: isolate;
+    }
+    .app-shell::before {
+      content: "";
+      position: fixed;
+      inset: 64px 0 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(var(--tech-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--tech-grid) 1px, transparent 1px),
+        linear-gradient(135deg, transparent 0 47%, var(--tech-grid-strong) 48%, transparent 51%),
+        linear-gradient(180deg, color-mix(in srgb, var(--accent) 8%, transparent), transparent 22%);
+      background-size: 44px 44px, 44px 44px, 220px 220px, 100% 100%;
+      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.42));
+      opacity: 0.72;
     }
     .app-header {
+      position: relative;
       display: grid;
       grid-template-columns: 1fr auto;
       gap: 16px;
@@ -99,12 +125,35 @@
       border-bottom: 1px solid var(--line);
       box-shadow: 0 1px 0 rgba(255, 255, 255, 0.02);
       z-index: 2;
+      overflow: hidden;
+    }
+    .app-header::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), var(--accent-2), transparent);
+      opacity: 0.52;
     }
     h1 {
       margin: 0 0 5px;
       font-size: 18px;
       line-height: 1.2;
       letter-spacing: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+    }
+    h1::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border: 1px solid var(--accent);
+      border-radius: 3px;
+      box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--accent) 22%, transparent), 0 0 16px color-mix(in srgb, var(--accent) 48%, transparent);
+      transform: rotate(45deg);
     }
     .sub {
       margin: 0;
@@ -127,7 +176,8 @@
       padding: 3px;
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: var(--panel-2);
+      background: color-mix(in srgb, var(--panel-2) 86%, var(--bg) 14%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
     }
     .page-tab {
       height: 32px;
@@ -141,9 +191,9 @@
       font-weight: 850;
     }
     .page-tab.active {
-      background: var(--accent);
+      background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent-2) 42%, var(--accent)));
       color: #ffffff;
-      box-shadow: 0 6px 14px color-mix(in srgb, var(--accent) 22%, transparent);
+      box-shadow: 0 8px 20px color-mix(in srgb, var(--accent) 28%, transparent);
     }
     [data-page] {
       display: none !important;
@@ -184,23 +234,25 @@
     select {
       min-width: 112px;
       border: 1px solid var(--line);
-      background: var(--panel-2);
+      background: color-mix(in srgb, var(--panel-2) 88%, var(--bg) 12%);
       padding: 0 10px;
       color: var(--text);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
     }
     button {
-      border: 0;
-      background: var(--accent);
+      border: 1px solid color-mix(in srgb, var(--accent) 70%, var(--line) 30%);
+      background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent-2) 38%, var(--accent)));
       color: white;
       padding: 0 16px;
       font-weight: 700;
       cursor: pointer;
+      box-shadow: 0 10px 22px color-mix(in srgb, var(--accent) 24%, transparent);
     }
     .theme-button {
       width: 40px;
       padding: 0;
       border: 1px solid var(--line);
-      background: var(--panel-2);
+      background: color-mix(in srgb, var(--panel-2) 90%, var(--bg) 10%);
       color: var(--text);
       display: inline-flex;
       align-items: center;
@@ -212,6 +264,8 @@
       color: var(--accent);
     }
     .app-body {
+      position: relative;
+      z-index: 1;
       min-height: 0;
       display: grid;
       grid-template-columns: 232px minmax(0, 1fr);
@@ -229,6 +283,7 @@
       background: color-mix(in srgb, var(--panel) 94%, var(--bg) 6%);
       border-right: 1px solid var(--line);
       padding: 14px 12px;
+      box-shadow: inset -1px 0 0 color-mix(in srgb, var(--accent) 10%, transparent);
     }
     .rail-section {
       padding: 12px 0;
@@ -274,7 +329,8 @@
       width: 24px;
       height: 24px;
       border-radius: 7px;
-      background: var(--panel-2);
+      background: color-mix(in srgb, var(--panel-2) 84%, var(--accent) 16%);
+      border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--line));
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -309,7 +365,7 @@
       min-height: 0;
       overflow-y: auto;
       padding: 22px clamp(16px, 2.1vw, 34px) 34px;
-      background: var(--bg);
+      background: transparent;
     }
     button:disabled {
       cursor: wait;
@@ -323,15 +379,43 @@
       max-width: 1560px;
     }
     .card {
+      position: relative;
+      overflow: hidden;
       background: color-mix(in srgb, var(--panel) 96%, var(--bg) 4%);
       border: 1px solid var(--line);
       border-radius: 8px;
       padding: 16px;
       box-shadow: 0 10px 28px color-mix(in srgb, #000000 18%, transparent);
     }
+    .card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--tech-corner), color-mix(in srgb, var(--accent-2) 38%, var(--tech-corner)), transparent);
+      opacity: 0.86;
+      pointer-events: none;
+    }
+    .card::after {
+      content: "";
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 24px;
+      height: 24px;
+      border-top: 1px solid var(--tech-corner);
+      border-right: 1px solid var(--tech-corner);
+      opacity: 0.62;
+      pointer-events: none;
+    }
     .kpis .card {
       min-height: 92px;
       padding: 15px 16px;
+      background:
+        linear-gradient(135deg, var(--tech-sheen), transparent 34%),
+        color-mix(in srgb, var(--panel) 96%, var(--bg) 4%);
     }
     .side-column .card {
       padding: 15px;
@@ -342,6 +426,17 @@
       font-size: 14px;
       font-weight: 800;
       line-height: 1.4;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .label::before {
+      content: "";
+      width: 3px;
+      height: 14px;
+      border-radius: 99px;
+      background: linear-gradient(180deg, var(--accent), var(--accent-2));
+      box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 46%, transparent);
     }
     .value {
       margin-top: 8px;
@@ -599,7 +694,9 @@
       border: 1px solid var(--line);
       border-radius: 8px;
       padding: 8px 9px;
-      background: color-mix(in srgb, var(--panel) 86%, var(--bg) 14%);
+      background:
+        linear-gradient(90deg, color-mix(in srgb, var(--accent) 6%, transparent), transparent 48%),
+        color-mix(in srgb, var(--panel) 86%, var(--bg) 14%);
     }
     .allocation-row strong {
       color: var(--text);
@@ -736,8 +833,15 @@
     .analysis-item {
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: var(--panel-2);
+      background:
+        linear-gradient(135deg, color-mix(in srgb, var(--accent) 5%, transparent), transparent 42%),
+        var(--panel-2);
       padding: 10px 12px;
+      transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+    }
+    .analysis-item:hover {
+      border-color: color-mix(in srgb, var(--accent) 36%, var(--line));
+      box-shadow: 0 12px 24px color-mix(in srgb, var(--accent) 9%, transparent);
     }
     .analysis-item-head {
       display: flex;
@@ -775,7 +879,9 @@
       align-items: start;
       border: 1px solid var(--line);
       border-radius: 7px;
-      background: var(--panel);
+      background:
+        linear-gradient(90deg, color-mix(in srgb, var(--accent) 5%, transparent), transparent 58%),
+        var(--panel);
       padding: 7px 8px;
       font-size: 12px;
       line-height: 1.55;
@@ -928,7 +1034,15 @@
       border: 1px solid var(--line);
       border-radius: 8px;
       padding: 10px 11px;
-      background: color-mix(in srgb, var(--panel) 88%, var(--bg) 12%);
+      background:
+        linear-gradient(135deg, color-mix(in srgb, var(--accent) 7%, transparent), transparent 44%),
+        color-mix(in srgb, var(--panel) 88%, var(--bg) 12%);
+      transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+    }
+    .watchlist-tile:hover {
+      border-color: color-mix(in srgb, var(--accent) 38%, var(--line));
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px color-mix(in srgb, var(--accent) 10%, transparent);
     }
     .watchlist-tile-head {
       display: grid;
@@ -977,10 +1091,10 @@
       min-width: 0;
       height: 22px;
       max-width: 100%;
-      border: 1px solid var(--line);
+      border: 1px solid color-mix(in srgb, var(--tag-tone, var(--accent)) 26%, var(--line));
       border-radius: 999px;
       padding: 0 8px 0 15px;
-      background: var(--panel-2);
+      background: color-mix(in srgb, var(--panel-2) 86%, var(--tag-tone, var(--accent)) 8%);
       color: var(--text);
       font-size: 10px;
       font-weight: 700;
@@ -1029,7 +1143,9 @@
     }
     .term-item {
       border-left: 3px solid var(--accent);
-      background: var(--panel-2);
+      background:
+        linear-gradient(90deg, color-mix(in srgb, var(--accent) 8%, transparent), transparent 55%),
+        var(--panel-2);
       padding: 10px 12px;
       line-height: 1.55;
     }
@@ -1078,8 +1194,16 @@
     }
     th {
       color: var(--muted);
-      background: var(--panel-2);
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--accent) 7%, transparent), transparent),
+        var(--panel-2);
       font-weight: 700;
+    }
+    tbody tr {
+      transition: background 0.16s ease, color 0.16s ease;
+    }
+    tbody tr:hover {
+      background: color-mix(in srgb, var(--accent) 7%, transparent);
     }
     .news-title-cell {
       min-width: 280px;
