@@ -708,6 +708,60 @@
       line-height: 1.68;
       overflow-wrap: anywhere;
     }
+    .analysis-checks {
+      display: grid;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .analysis-check {
+      display: grid;
+      grid-template-columns: minmax(72px, 92px) minmax(78px, 110px) 1fr;
+      gap: 8px;
+      align-items: start;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--panel);
+      padding: 7px 8px;
+      font-size: 12px;
+      line-height: 1.55;
+    }
+    .analysis-check-label {
+      font-weight: 800;
+      color: var(--text);
+    }
+    .analysis-check-status {
+      color: var(--accent);
+      font-weight: 800;
+      white-space: normal;
+    }
+    .analysis-check-status.warning {
+      color: #b45309;
+    }
+    .analysis-check-status.positive {
+      color: var(--positive);
+    }
+    .analysis-check-status.negative {
+      color: var(--negative);
+    }
+    .analysis-check-detail {
+      color: var(--muted);
+      overflow-wrap: anywhere;
+    }
+    .analysis-sources {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 8px;
+    }
+    .source-chip {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 2px 7px;
+      color: var(--muted);
+      background: var(--panel);
+      font-size: 11px;
+      line-height: 1.5;
+    }
     .news-list {
       display: grid;
       gap: 10px;
@@ -1094,6 +1148,12 @@
       }
       .chart {
         height: 260px;
+      }
+      .analysis-check {
+        grid-template-columns: 1fr;
+      }
+      .analysis-check-status {
+        white-space: normal;
       }
     }
     @media (max-width: 460px) {
@@ -1576,6 +1636,26 @@
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#39;");
     }
+    function renderAnalysisChecks(row) {
+      const checks = Array.isArray(row.cross_checks) ? row.cross_checks : [];
+      if (!checks.length) return "";
+      return `
+        <div class="analysis-checks">
+          ${checks.map((check) => `
+            <div class="analysis-check">
+              <div class="analysis-check-label">${escapeHtml(check.label || "檢查")}</div>
+              <div class="analysis-check-status ${escapeHtml(check.level || "info")}">${escapeHtml(check.status || "")}</div>
+              <div class="analysis-check-detail">${escapeHtml(check.detail || "")}</div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+    function renderAnalysisSources(row) {
+      const sources = Array.isArray(row.source_basis) ? row.source_basis.filter(Boolean) : [];
+      if (!sources.length) return "";
+      return `<div class="analysis-sources">${sources.map((source) => `<span class="source-chip">${escapeHtml(source)}</span>`).join("")}</div>`;
+    }
     function reasonText(reasons) {
       const parts = (Array.isArray(reasons) ? reasons : [reasons])
         .map((value) => String(value ?? "")
@@ -1873,11 +1953,12 @@
               <span class="level-pill ${escapeHtml(row.level || "info")}">${escapeHtml(row.status || row.level || "info")}</span>
             </div>
             <div class="analysis-item-text">${escapeHtml(row.evidence || row.detail || "")}</div>
+            ${renderAnalysisChecks(row)}
             <div class="analysis-item-suggestion">${escapeHtml(row.suggestion || "持續追蹤，不單靠單一指標做決策。")}</div>
+            ${renderAnalysisSources(row)}
           </div>
         `).join("")
-        : `<div class="empty">目前沒有足夠資料產生分析參考</div>`;
-
+        : `<div class="empty">目前沒有足夠資料產生投資分析</div>`;
       document.getElementById("positionRows").innerHTML = positions.length
         ? positions.map((row) => `
           <tr>
