@@ -42,6 +42,9 @@
       --tech-grid-strong: rgba(56, 189, 248, 0.16);
       --tech-sheen: rgba(79, 142, 247, 0.18);
       --tech-corner: rgba(56, 189, 248, 0.42);
+      --warning-soft: rgba(215, 154, 43, 0.14);
+      --positive-soft: rgba(249, 115, 91, 0.12);
+      --negative-soft: rgba(34, 197, 94, 0.12);
     }
     body.light {
       --bg: #eef2f8;
@@ -79,6 +82,9 @@
       --tech-grid-strong: rgba(8, 145, 178, 0.12);
       --tech-sheen: rgba(37, 99, 235, 0.10);
       --tech-corner: rgba(37, 99, 235, 0.26);
+      --warning-soft: rgba(183, 121, 31, 0.12);
+      --positive-soft: rgba(194, 65, 12, 0.10);
+      --negative-soft: rgba(15, 118, 110, 0.10);
     }
     body {
       margin: 0;
@@ -93,7 +99,7 @@
     }
     .app-shell {
       display: grid;
-      grid-template-rows: 64px 1fr;
+      grid-template-rows: auto 1fr;
       height: 100vh;
       min-height: 0;
       position: relative;
@@ -102,7 +108,7 @@
     .app-shell::before {
       content: "";
       position: fixed;
-      inset: 64px 0 0;
+      inset: 84px 0 0;
       z-index: 0;
       pointer-events: none;
       background:
@@ -120,7 +126,8 @@
       grid-template-columns: 1fr auto;
       gap: 16px;
       align-items: center;
-      padding: 0 clamp(16px, 2vw, 30px);
+      min-height: 84px;
+      padding: 9px clamp(16px, 2vw, 30px);
       background: color-mix(in srgb, var(--panel) 92%, var(--bg) 8%);
       border-bottom: 1px solid var(--line);
       box-shadow: 0 1px 0 rgba(255, 255, 255, 0.02);
@@ -160,6 +167,45 @@
       color: var(--muted);
       font-size: 12px;
       line-height: 1.5;
+    }
+    .market-session {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .session-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 26px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 3px 10px;
+      background: color-mix(in srgb, var(--panel-2) 84%, var(--bg) 16%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+    .session-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--muted);
+      box-shadow: 0 0 12px color-mix(in srgb, var(--muted) 45%, transparent);
+    }
+    .session-pill.open .session-dot {
+      background: var(--accent);
+      box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 60%, transparent);
+    }
+    .session-pill.closed .session-dot {
+      background: var(--muted);
+      box-shadow: 0 0 12px color-mix(in srgb, var(--muted) 42%, transparent);
+    }
+    .session-pill.preopen .session-dot {
+      background: var(--gold);
+      box-shadow: 0 0 12px color-mix(in srgb, var(--gold) 56%, transparent);
     }
     .toolbar {
       display: flex;
@@ -462,7 +508,7 @@
       font-size: 11px;
       line-height: 1.45;
     }
-    section { margin-top: 10px; scroll-margin-top: 74px; }
+    section { margin-top: 10px; scroll-margin-top: 118px; }
     .dashboard-layout {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
@@ -486,7 +532,7 @@
       position: sticky;
       top: 16px;
       flex: none;
-      max-height: calc(100vh - 104px);
+      max-height: calc(100vh - 124px);
       overflow-y: auto;
       padding-right: 2px;
       scrollbar-width: thin;
@@ -499,7 +545,7 @@
     }
     .primary-column .analysis-card .analysis-item {
       display: grid;
-      grid-template-columns: minmax(230px, 280px) minmax(0, 1fr);
+      grid-template-columns: minmax(250px, 320px) minmax(0, 1fr);
       gap: 14px;
       align-items: start;
       min-height: 0;
@@ -523,6 +569,67 @@
     }
     .primary-column .analysis-card .analysis-check {
       grid-template-columns: minmax(72px, 94px) minmax(84px, 120px) minmax(0, 1fr);
+    }
+    .analysis-item.summary-analysis {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .analysis-item.summary-analysis .analysis-main {
+      width: 100%;
+      grid-template-columns: minmax(260px, 0.76fr) minmax(360px, 1.24fr);
+      gap: 14px;
+      align-items: start;
+    }
+    .analysis-brief {
+      display: grid;
+      gap: 9px;
+      min-width: 0;
+    }
+    .analysis-support {
+      display: grid;
+      gap: 8px;
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 11px 12px;
+      background: color-mix(in srgb, var(--panel) 74%, var(--bg) 26%);
+    }
+    .analysis-support-title {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 850;
+      margin-bottom: 8px;
+    }
+    .analysis-suggestion-list {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+    .analysis-quality-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .analysis-quality-cell {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 9px 10px;
+      background: color-mix(in srgb, var(--panel-2) 78%, var(--bg) 22%);
+    }
+    .analysis-quality-cell span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.25;
+    }
+    .analysis-quality-cell strong {
+      display: block;
+      margin-top: 4px;
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.3;
     }
     .dashboard-layout section,
     .dashboard-layout .band-heading,
@@ -608,6 +715,93 @@
     .allocation-card,
     .market-trend-card {
       min-width: 0;
+    }
+    .position-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+      margin-bottom: 12px;
+    }
+    .position-card {
+      display: grid;
+      gap: 10px;
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background:
+        linear-gradient(135deg, color-mix(in srgb, var(--accent) 6%, transparent), transparent 44%),
+        color-mix(in srgb, var(--panel-2) 80%, var(--bg) 20%);
+    }
+    .position-card-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: start;
+    }
+    .position-card-title {
+      display: grid;
+      gap: 2px;
+      min-width: 0;
+    }
+    .position-card-title strong {
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+    .position-card-title span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .position-return {
+      justify-self: end;
+      border-radius: 999px;
+      padding: 3px 8px;
+      background: color-mix(in srgb, currentColor 10%, transparent);
+      font-size: 12px;
+      font-weight: 850;
+      white-space: nowrap;
+    }
+    .position-price-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .position-metric {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 9px;
+      background: color-mix(in srgb, var(--panel) 74%, var(--bg) 26%);
+    }
+    .position-metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.25;
+    }
+    .position-metric strong {
+      display: block;
+      margin-top: 4px;
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+    .position-bar {
+      height: 7px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--line) 70%, transparent);
+    }
+    .position-bar-fill {
+      height: 100%;
+      width: var(--weight, 0%);
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 44%, transparent);
     }
     .mini-chart {
       width: 100%;
@@ -1379,6 +1573,12 @@
       .primary-column .analysis-card .analysis-item {
         grid-template-columns: 1fr;
       }
+      .analysis-item.summary-analysis .analysis-main {
+        grid-template-columns: 1fr;
+      }
+      .position-grid {
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      }
       .expanded-layout {
         grid-template-columns: 1fr;
       }
@@ -1423,6 +1623,19 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 8px;
       }
+      .market-session {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+      .session-pill {
+        justify-content: flex-start;
+      }
+      .position-grid {
+        grid-template-columns: 1fr;
+      }
+      .position-price-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
       .chart-head {
         display: grid;
         grid-template-columns: minmax(0, 1fr) auto;
@@ -1434,6 +1647,32 @@
       }
       .value {
         font-size: 20px;
+      }
+      .toolbar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 40px;
+      }
+      .toolbar select,
+      .toolbar button {
+        width: 100%;
+        min-width: 0;
+        flex: unset;
+      }
+      .page-tabs {
+        grid-column: 1 / span 2;
+        width: 100%;
+      }
+      #railToggleButton {
+        grid-column: 3;
+      }
+      #rangeSelect {
+        grid-column: 1;
+      }
+      #refreshButton {
+        grid-column: 2;
+      }
+      #themeButton {
+        grid-column: 3;
       }
       th,
       td {
@@ -1448,6 +1687,7 @@
       <div>
         <h1>股票資產 Dashboard</h1>
         <p class="sub" id="subtitle">讀取中</p>
+        <div class="market-session" id="marketSession" aria-label="市場交易時間"></div>
       </div>
       <div class="toolbar">
         <div class="page-tabs" aria-label="市場頁面切換">
@@ -1538,6 +1778,7 @@
 
         <section class="card positions-card" id="positionsSection" data-page="tw">
           <div class="label">持股明細</div>
+          <div class="position-grid" id="positionCards"></div>
           <div class="table-wrap">
             <table>
               <thead>
@@ -1857,6 +2098,90 @@
       if (!value) return "無資料";
       return displayDate(String(value).slice(0, 10));
     }
+    function zonedParts(date, timeZone) {
+      const values = {};
+      const formatter = new Intl.DateTimeFormat("en-US", {
+        timeZone,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        weekday: "short",
+        hourCycle: "h23",
+      });
+      for (const part of formatter.formatToParts(date)) {
+        if (part.type !== "literal") values[part.type] = part.value;
+      }
+      return {
+        year: Number(values.year),
+        month: Number(values.month),
+        day: Number(values.day),
+        hour: Number(values.hour),
+        minute: Number(values.minute),
+        weekday: values.weekday,
+      };
+    }
+    function zonedDateTimeToDate(timeZone, year, month, day, hour, minute) {
+      const target = Date.UTC(year, month - 1, day, hour, minute);
+      let guess = target;
+      for (let index = 0; index < 3; index += 1) {
+        const parts = zonedParts(new Date(guess), timeZone);
+        const rendered = Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute);
+        guess += target - rendered;
+      }
+      return new Date(guess);
+    }
+    function sameZonedDate(a, b, timeZone) {
+      const pa = zonedParts(a, timeZone);
+      const pb = zonedParts(b, timeZone);
+      return pa.year === pb.year && pa.month === pb.month && pa.day === pb.day;
+    }
+    function timeInZone(date, timeZone) {
+      return new Intl.DateTimeFormat("zh-TW", {
+        timeZone,
+        hour: "2-digit",
+        minute: "2-digit",
+        hourCycle: "h23",
+      }).format(date);
+    }
+    function isWeekday(parts) {
+      return !["Sat", "Sun"].includes(parts.weekday);
+    }
+    function marketSessionInfo(page) {
+      const now = new Date();
+      const config = page === "us"
+        ? { label: "美股常規盤", timeZone: "America/New_York", openHour: 9, openMinute: 30, closeHour: 16, closeMinute: 0, nativeLabel: "ET" }
+        : { label: "台股集中市場", timeZone: "Asia/Taipei", openHour: 9, openMinute: 0, closeHour: 13, closeMinute: 30, nativeLabel: "台北" };
+      const parts = zonedParts(now, config.timeZone);
+      const open = zonedDateTimeToDate(config.timeZone, parts.year, parts.month, parts.day, config.openHour, config.openMinute);
+      const close = zonedDateTimeToDate(config.timeZone, parts.year, parts.month, parts.day, config.closeHour, config.closeMinute);
+      const weekday = isWeekday(parts);
+      const state = weekday && now >= open && now <= close ? "open" : weekday && now < open ? "preopen" : "closed";
+      const stateText = state === "open" ? "交易中" : state === "preopen" ? "待開盤" : "休市 / 收盤";
+      const nativeRange = `${String(config.openHour).padStart(2, "0")}:${String(config.openMinute).padStart(2, "0")} - ${String(config.closeHour).padStart(2, "0")}:${String(config.closeMinute).padStart(2, "0")} ${config.nativeLabel}`;
+      const taipeiSuffix = sameZonedDate(open, close, "Asia/Taipei") ? "" : "（跨日）";
+      const taipeiRange = page === "us"
+        ? `台北 ${timeInZone(open, "Asia/Taipei")} - ${timeInZone(close, "Asia/Taipei")}${taipeiSuffix}`
+        : nativeRange;
+      const detail = page === "us" ? `${nativeRange} / ${taipeiRange}，不含美股休市日` : `${nativeRange}，不含台股休市日`;
+      return { state, stateText, label: config.label, detail };
+    }
+    function renderMarketSession() {
+      const info = marketSessionInfo(activeMarketPage);
+      const el = document.getElementById("marketSession");
+      if (!el) return;
+      el.innerHTML = `
+        <span class="session-pill ${escapeHtml(info.state)}">
+          <span class="session-dot" aria-hidden="true"></span>
+          <strong>${escapeHtml(info.label)}</strong>
+          <span>${escapeHtml(info.stateText)}</span>
+        </span>
+        <span class="session-pill">
+          <span>${escapeHtml(info.detail)}</span>
+        </span>
+      `;
+    }
     function escapeHtml(value) {
       return String(value ?? "")
         .replaceAll("&", "&amp;")
@@ -1885,6 +2210,76 @@
       if (!sources.length) return "";
       return `<div class="analysis-sources">${sources.map((source) => `<span class="source-chip">${escapeHtml(source)}</span>`).join("")}</div>`;
     }
+    function isSummaryAnalysis(row) {
+      const title = String(row.title || "");
+      return /組合|集中|資料品質|品質/.test(title);
+    }
+    function splitSuggestion(text) {
+      return String(text || "")
+        .split(/[；。]\s*/)
+        .map((item) => item.trim())
+        .filter(Boolean)
+        .slice(0, 3);
+    }
+    function renderAnalysisItem(row) {
+      const level = escapeHtml(row.level || "info");
+      const status = escapeHtml(row.status || row.level || "info");
+      const title = escapeHtml(row.title);
+      const evidence = escapeHtml(row.evidence || row.detail || "");
+      const suggestion = row.suggestion || "持續追蹤，不單靠單一指標做決策。";
+      if (isSummaryAnalysis(row)) {
+        const suggestions = splitSuggestion(suggestion);
+        return `
+          <div class="analysis-item summary-analysis">
+            <div class="analysis-main">
+              <div class="analysis-brief">
+                <div class="analysis-item-head">
+                  <div class="analysis-item-title">${title}</div>
+                  <span class="level-pill ${level}">${status}</span>
+                </div>
+                <div class="analysis-item-text">${evidence}</div>
+                <ul class="analysis-suggestion-list">
+                  ${(suggestions.length ? suggestions : [suggestion]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+                </ul>
+                ${renderAnalysisSources(row)}
+              </div>
+              <div class="analysis-support">
+                <div class="analysis-support-title">資料品質與判斷依據</div>
+                ${renderAnalysisChecks(row)}
+                ${renderAnalysisQuality(row)}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      return `
+        <div class="analysis-item">
+          <div class="analysis-main">
+            <div class="analysis-item-head">
+              <div class="analysis-item-title">${title}</div>
+              <span class="level-pill ${level}">${status}</span>
+            </div>
+            <div class="analysis-item-text">${evidence}</div>
+            <div class="analysis-item-suggestion">${escapeHtml(suggestion)}</div>
+            ${renderAnalysisSources(row)}
+          </div>
+          <div class="analysis-evidence">
+            ${renderAnalysisChecks(row)}
+          </div>
+        </div>
+      `;
+    }
+    function renderAnalysisQuality(row) {
+      const sources = Array.isArray(row.source_basis) ? row.source_basis.filter(Boolean) : [];
+      const checks = Array.isArray(row.cross_checks) ? row.cross_checks : [];
+      return `
+        <div class="analysis-quality-grid">
+          <div class="analysis-quality-cell"><span>交叉檢查</span><strong>${checks.length || 0} 項</strong></div>
+          <div class="analysis-quality-cell"><span>資料來源</span><strong>${sources.length || 0} 類</strong></div>
+          <div class="analysis-quality-cell"><span>狀態</span><strong>${escapeHtml(row.status || "觀察")}</strong></div>
+        </div>
+      `;
+    }
     function reasonText(reasons) {
       const parts = (Array.isArray(reasons) ? reasons : [reasons])
         .map((value) => String(value ?? "")
@@ -1908,6 +2303,7 @@
     function applyMarketPage(page) {
       activeMarketPage = page === "us" ? "us" : "tw";
       document.body.dataset.marketPage = activeMarketPage;
+      renderMarketSession();
       for (const button of document.querySelectorAll("[data-page-button]")) {
         const active = button.dataset.pageButton === activeMarketPage;
         button.classList.toggle("active", active);
@@ -2112,6 +2508,34 @@
       button.disabled = isLoading;
       button.textContent = isLoading ? "讀取中" : "↻ 刷新";
     }
+    function renderPositionCards(positions, summary) {
+      const total = Number(summary.total_market_value || 0);
+      const sorted = [...positions].sort((a, b) => Number(b.market_value || 0) - Number(a.market_value || 0));
+      return sorted.map((row) => {
+        const weight = total > 0 ? Math.max(0, Math.min(100, Number(row.market_value || 0) / total * 100)) : 0;
+        return `
+          <article class="position-card">
+            <div class="position-card-head">
+              <div class="position-card-title">
+                <strong>${stockNameLink(row)}</strong>
+                <span>${escapeHtml(row.symbol)} · ${numberText(row.shares, 3)} 股</span>
+              </div>
+              <span class="position-return ${classFor(row.profit_loss_percent)}">${percent(row.profit_loss_percent)}</span>
+            </div>
+            <div class="position-price-row">
+              <div class="position-metric"><span>最新價</span><strong>${numberText(row.latest_close, 2)}</strong></div>
+              <div class="position-metric"><span>均價</span><strong>${numberText(row.average_cost, 2)}</strong></div>
+              <div class="position-metric"><span>估計淨值</span><strong>${money(row.market_value)}</strong></div>
+              <div class="position-metric"><span>未實現損益</span><strong class="${classFor(row.profit_loss)}">${money(row.profit_loss)}</strong></div>
+            </div>
+            <div class="position-bar" aria-label="組合權重 ${weight.toFixed(1)}%">
+              <div class="position-bar-fill" style="--weight:${weight.toFixed(1)}%"></div>
+            </div>
+            <div class="watchlist-meta">權重 ${weight.toFixed(1)}% · ${escapeHtml(quoteMeta(row))}</div>
+          </article>
+        `;
+      }).join("");
+    }
     async function loadDashboard() {
       setError("");
       if (!project || !user || !token) {
@@ -2158,6 +2582,7 @@
       const usMarketNews = payload.us_market_news || [];
       const generatedAt = payload.generated_at ? new Date(payload.generated_at).toLocaleString() : "無資料";
       document.getElementById("subtitle").textContent = `最新報價日 ${displayDate(summary.latest_quote_date)}，即時報價 ${summary.realtime_quote_count || 0}/${summary.quote_count || 0} 檔，更新時間 ${generatedAt}`;
+      renderMarketSession();
       document.getElementById("marketValue").textContent = money(summary.total_market_value);
       document.getElementById("totalCost").textContent = money(summary.total_cost);
       document.getElementById("profitLoss").textContent = money(summary.total_profit_loss);
@@ -2175,23 +2600,11 @@
       warning.textContent = warnings.join("\n");
 
       document.getElementById("analysisRows").innerHTML = analysis.length
-        ? analysis.map((row) => `
-          <div class="analysis-item">
-            <div class="analysis-main">
-              <div class="analysis-item-head">
-                <div class="analysis-item-title">${escapeHtml(row.title)}</div>
-                <span class="level-pill ${escapeHtml(row.level || "info")}">${escapeHtml(row.status || row.level || "info")}</span>
-              </div>
-              <div class="analysis-item-text">${escapeHtml(row.evidence || row.detail || "")}</div>
-              <div class="analysis-item-suggestion">${escapeHtml(row.suggestion || "持續追蹤，不單靠單一指標做決策。")}</div>
-              ${renderAnalysisSources(row)}
-            </div>
-            <div class="analysis-evidence">
-              ${renderAnalysisChecks(row)}
-            </div>
-          </div>
-        `).join("")
+        ? analysis.map((row) => renderAnalysisItem(row)).join("")
         : `<div class="empty">目前沒有足夠資料產生投資分析</div>`;
+      document.getElementById("positionCards").innerHTML = positions.length
+        ? renderPositionCards(positions, summary)
+        : `<div class="empty">目前沒有持股資料</div>`;
       document.getElementById("positionRows").innerHTML = positions.length
         ? positions.map((row) => `
           <tr>
