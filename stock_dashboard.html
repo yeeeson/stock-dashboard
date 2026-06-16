@@ -374,6 +374,39 @@
     .side-column {
       flex: 0 1 410px;
     }
+    .primary-column .analysis-card .analysis-list {
+      grid-template-columns: 1fr;
+      max-height: none;
+      overflow: visible;
+      padding-right: 0;
+    }
+    .primary-column .analysis-card .analysis-item {
+      display: grid;
+      grid-template-columns: minmax(230px, 280px) minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+      min-height: 0;
+      padding: 14px;
+    }
+    .primary-column .analysis-card .analysis-item-title {
+      font-size: 15px;
+    }
+    .primary-column .analysis-card .analysis-item-text,
+    .primary-column .analysis-card .analysis-item-suggestion {
+      font-size: 13px;
+    }
+    .analysis-main,
+    .analysis-evidence {
+      min-width: 0;
+    }
+    .analysis-main {
+      display: grid;
+      gap: 8px;
+      align-content: start;
+    }
+    .primary-column .analysis-card .analysis-check {
+      grid-template-columns: minmax(72px, 94px) minmax(84px, 120px) minmax(0, 1fr);
+    }
     .dashboard-layout section,
     .dashboard-layout .band-heading,
     .dashboard-layout .sector-watchlist-stack {
@@ -796,7 +829,7 @@
     }
     .sector-watchlist-stack {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
       gap: 10px;
     }
     .full-width-section {
@@ -823,9 +856,9 @@
     }
     .sector-stock-row {
       display: grid;
-      grid-template-columns: 52px minmax(0, 1fr);
-      gap: 6px;
-      padding: 10px 0;
+      grid-template-columns: 58px minmax(0, 1fr);
+      gap: 8px;
+      padding: 9px 0;
       border-top: 1px solid var(--line);
     }
     .sector-stock-row:first-child {
@@ -854,6 +887,49 @@
       font-size: 12px;
       line-height: 1.45;
       white-space: normal;
+    }
+    .watchlist-compact {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .watchlist-tile {
+      display: grid;
+      gap: 7px;
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 11px;
+      background: color-mix(in srgb, var(--panel) 88%, var(--bg) 12%);
+    }
+    .watchlist-tile-head {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: baseline;
+    }
+    .watchlist-symbol {
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 850;
+      line-height: 1.2;
+    }
+    .watchlist-price {
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .watchlist-meta {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+    .watchlist-tile .technical-tags {
+      grid-template-columns: repeat(2, minmax(82px, 1fr));
+      max-width: none;
     }
     .technical-tags {
       display: grid;
@@ -1131,6 +1207,9 @@
       .sector-watchlist-stack {
         grid-template-columns: 1fr;
       }
+      .primary-column .analysis-card .analysis-item {
+        grid-template-columns: 1fr;
+      }
       .expanded-layout {
         grid-template-columns: 1fr;
       }
@@ -1360,32 +1439,16 @@
           </div>
         </section>
 
+        <section class="card analysis-card" id="analysisSection" data-page="tw">
+          <div class="label">投資分析參考</div>
+          <div class="analysis-list" id="analysisRows"></div>
+          <div class="note">以上為依日 K、均線、RSI、波動、量能與可信新聞整理的客觀檢視項目，不是買賣建議。</div>
+        </section>
+
         <section class="card watchlist-card" id="watchlistSection" data-page="tw">
           <div class="label">觀察名單</div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>代號</th>
-                  <th>名稱</th>
-                  <th>收盤</th>
-                  <th>MA5</th>
-                  <th>MA5 乖離</th>
-                  <th>MA20</th>
-                  <th>MA20 乖離</th>
-                  <th>MA60</th>
-                  <th>MA60 乖離</th>
-                  <th>MA120</th>
-                  <th>MA240</th>
-                  <th>RSI14</th>
-                  <th>20 日報酬</th>
-                  <th class="reason-cell">關注理由</th>
-                </tr>
-              </thead>
-              <tbody id="watchlistRows"></tbody>
-            </table>
-          </div>
-          <div class="note">觀察名單由固定候選池用技術面條件篩選，只代表值得追蹤，不代表適合買進。</div>
+          <div class="watchlist-compact" id="watchlistRows"></div>
+          <div class="note">觀察名單保留核心標籤與少量指標，方便先掃描；需要完整 K 線可點股票名稱外連查看。</div>
         </section>
 
         <div class="band-heading" data-page="tw">
@@ -1397,12 +1460,6 @@
       </div>
 
       <div class="side-column" data-page="tw">
-        <section class="card analysis-card" id="analysisSection">
-          <div class="label">投資分析參考</div>
-          <div class="analysis-list" id="analysisRows"></div>
-          <div class="note">以上為依日 K、均線、RSI、波動、量能與可信新聞整理的客觀檢視項目，不是買賣建議。</div>
-        </section>
-
         <section class="card records-card">
           <div class="label">近期投資紀錄</div>
           <div class="table-wrap">
@@ -1948,14 +2005,18 @@
       document.getElementById("analysisRows").innerHTML = analysis.length
         ? analysis.map((row) => `
           <div class="analysis-item">
-            <div class="analysis-item-head">
-              <div class="analysis-item-title">${escapeHtml(row.title)}</div>
-              <span class="level-pill ${escapeHtml(row.level || "info")}">${escapeHtml(row.status || row.level || "info")}</span>
+            <div class="analysis-main">
+              <div class="analysis-item-head">
+                <div class="analysis-item-title">${escapeHtml(row.title)}</div>
+                <span class="level-pill ${escapeHtml(row.level || "info")}">${escapeHtml(row.status || row.level || "info")}</span>
+              </div>
+              <div class="analysis-item-text">${escapeHtml(row.evidence || row.detail || "")}</div>
+              <div class="analysis-item-suggestion">${escapeHtml(row.suggestion || "持續追蹤，不單靠單一指標做決策。")}</div>
+              ${renderAnalysisSources(row)}
             </div>
-            <div class="analysis-item-text">${escapeHtml(row.evidence || row.detail || "")}</div>
-            ${renderAnalysisChecks(row)}
-            <div class="analysis-item-suggestion">${escapeHtml(row.suggestion || "持續追蹤，不單靠單一指標做決策。")}</div>
-            ${renderAnalysisSources(row)}
+            <div class="analysis-evidence">
+              ${renderAnalysisChecks(row)}
+            </div>
           </div>
         `).join("")
         : `<div class="empty">目前沒有足夠資料產生投資分析</div>`;
@@ -1996,25 +2057,8 @@
         : `<tr><td colspan="10" class="empty">這個區間沒有投資紀錄</td></tr>`;
 
       document.getElementById("watchlistRows").innerHTML = watchlist.length
-        ? watchlist.map((row) => `
-          <tr>
-            <td><strong>${escapeHtml(row.symbol)}</strong></td>
-            <td>${stockNameLink(row)}</td>
-            <td>${numberText(row.latest_close, 2)}</td>
-            <td>${numberText(row.technical?.ma5, 2)}</td>
-            <td>${percent(row.technical?.ma5_bias)}</td>
-            <td>${numberText(row.technical?.ma20, 2)}</td>
-            <td>${percent(row.technical?.ma20_bias)}</td>
-            <td>${numberText(row.technical?.ma60, 2)}</td>
-            <td>${percent(row.technical?.ma60_bias)}</td>
-            <td>${numberText(row.technical?.ma120, 2)}</td>
-            <td>${numberText(row.technical?.ma240, 2)}</td>
-            <td>${numberText(row.technical?.rsi14, 2)}</td>
-            <td>${percent(row.technical?.return20)}</td>
-            <td class="reason-cell">${escapeHtml(reasonText(row.reasons))}</td>
-          </tr>
-        `).join("")
-        : `<tr><td colspan="14" class="empty">目前沒有符合條件的觀察標的</td></tr>`;
+        ? watchlistTileRows(watchlist)
+        : `<div class="empty">目前沒有符合條件的觀察標的</div>`;
 
       renderSectorWatchlists(sectorWatchlists);
       renderUsWatchlist(usWatchlist);
@@ -2075,22 +2119,38 @@
         </tr>
       `).join("");
     }
+    function compactWatchlistMeta(row) {
+      const technical = row.technical || {};
+      return [
+        `MA20 乖離 ${percent(technical.ma20_bias)}`,
+        `MA60 乖離 ${percent(technical.ma60_bias)}`,
+        `RSI ${numberText(technical.rsi14, 1)}`,
+      ].join(" · ");
+    }
+    function watchlistTileRows(items) {
+      return items.map((row) => `
+        <article class="watchlist-tile" title="${escapeHtml(reasonText(row.reasons))}">
+          <div class="watchlist-tile-head">
+            <span class="watchlist-symbol">${escapeHtml(row.symbol)}</span>
+            <span>${stockNameLink(row)}</span>
+            <span class="watchlist-price">${numberText(row.latest_close, 2)}</span>
+          </div>
+          ${technicalTagHtml(row.technical_tags)}
+          <div class="watchlist-meta">${escapeHtml(compactWatchlistMeta(row))}</div>
+        </article>
+      `).join("");
+    }
     function sectorTechnicalText(row) {
       const technical = row.technical || {};
       return [
-        `MA5 乖離 ${percent(technical.ma5_bias)}`,
-        `MA20 ${numberText(technical.ma20, 2)}`,
         `MA20 乖離 ${percent(technical.ma20_bias)}`,
-        `MA60 ${numberText(technical.ma60, 2)}`,
         `MA60 乖離 ${percent(technical.ma60_bias)}`,
-        `MA120 ${numberText(technical.ma120, 2)}`,
-        `RSI14 ${numberText(technical.rsi14, 2)}`,
-        `20 日 ${percent(technical.return20)}`,
-      ].join("，");
+        `RSI ${numberText(technical.rsi14, 1)}`,
+      ].join(" · ");
     }
     function sectorStockRows(items) {
       return items.map((row) => `
-        <div class="sector-stock-row">
+        <div class="sector-stock-row" title="${escapeHtml(reasonText(row.reasons))}">
           <div class="sector-symbol">
             <strong>${escapeHtml(row.symbol)}</strong>
             <span>${numberText(row.latest_close, 2)}</span>
@@ -2099,7 +2159,6 @@
             <div>${stockNameLink(row)}</div>
             ${technicalTagHtml(row.technical_tags)}
             <div class="sector-technical">${escapeHtml(sectorTechnicalText(row))}</div>
-            <div class="sector-reason">${escapeHtml(reasonText(row.reasons))}</div>
           </div>
         </div>
       `).join("");
