@@ -1355,10 +1355,13 @@
       white-space: nowrap;
     }
     .decision-chip.entry { --decision-tone: var(--positive); }
+    .decision-chip.nibble { --decision-tone: var(--positive); }
     .decision-chip.accumulate { --decision-tone: var(--positive); }
     .decision-chip.wait { --decision-tone: var(--gold); }
+    .decision-chip.cooldown { --decision-tone: var(--gold); }
     .decision-chip.watch { --decision-tone: var(--accent); }
     .decision-chip.risk { --decision-tone: var(--gold); }
+    .decision-chip.overheat { --decision-tone: var(--negative); }
     .decision-chip.avoid { --decision-tone: var(--negative); }
     .watchlist-decision {
       display: flex;
@@ -1370,6 +1373,29 @@
       color: var(--muted);
       font-size: 11px;
       line-height: 1.35;
+    }
+    .decision-guide {
+      display: grid;
+      gap: 9px;
+      margin-top: 12px;
+    }
+    .decision-guide-item {
+      display: grid;
+      grid-template-columns: minmax(96px, 112px) minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      border: 1px solid color-mix(in srgb, var(--line) 82%, transparent);
+      border-radius: 8px;
+      padding: 10px;
+      background:
+        linear-gradient(135deg, color-mix(in srgb, var(--accent) 7%, transparent), transparent 52%),
+        color-mix(in srgb, var(--panel-2) 88%, var(--panel) 12%);
+    }
+    .decision-guide-item p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
     }
     .watchlist-tile .technical-tags {
       grid-template-columns: repeat(2, minmax(82px, 1fr));
@@ -1791,6 +1817,12 @@
       .news-card .news-list {
         max-height: min(62vh, 520px);
       }
+      .decision-guide-item {
+        grid-template-columns: 1fr;
+      }
+      .decision-guide-item .decision-chip {
+        justify-self: start;
+      }
       .watchlist-compact {
         grid-template-columns: 1fr;
       }
@@ -2058,6 +2090,21 @@
         <section class="card news-card" id="newsSection">
           <div class="label">持股最新新聞</div>
           <div class="news-list" id="newsRows"></div>
+        </section>
+
+        <section class="card decision-guide-card">
+          <div class="label">標籤說明</div>
+          <div class="decision-guide">
+            <div class="decision-guide-item"><span class="decision-chip entry">可分批試單</span><p>趨勢偏多、RSI 已降溫且股價沒有明顯追高，適合用小批次建立或補足部位。</p></div>
+            <div class="decision-guide-item"><span class="decision-chip nibble">可小量試單</span><p>多頭結構仍健康，但 RSI 偏熱，只適合小部位測試，不適合一次買滿。</p></div>
+            <div class="decision-guide-item"><span class="decision-chip accumulate">強勢觀察</span><p>均線與價格結構偏強，但進場條件還不夠漂亮，先追蹤回測或整理狀況。</p></div>
+            <div class="decision-guide-item"><span class="decision-chip wait">等拉回</span><p>趨勢不差，但短線漲幅或 MA20 乖離偏大，等價格靠近均線再評估。</p></div>
+            <div class="decision-guide-item"><span class="decision-chip cooldown">等降溫</span><p>趨勢偏多但 RSI 太高，等動能冷卻、量價轉穩後再看是否有更好的切入點。</p></div>
+            <div class="decision-guide-item"><span class="decision-chip overheat">過熱不追</span><p>RSI 與短線漲幅同時偏高，追價風險較大，優先避免在情緒高點加碼。</p></div>
+            <div class="decision-guide-item"><span class="decision-chip avoid">偏弱避開</span><p>跌破關鍵均線或趨勢轉弱，先等結構修復，不急著接刀。</p></div>
+            <div class="decision-guide-item"><span class="decision-chip watch">觀察突破</span><p>均線糾結或區間整理，等放量突破或跌破後再判斷方向。</p></div>
+          </div>
+          <div class="note">標籤是依技術面、量能與新聞風險做的快速分類，不是買賣建議；實際操作仍要搭配資金配置與停損規則。</div>
         </section>
 
         <section class="card terms-card">
@@ -2635,20 +2682,33 @@
       const ma20Bias = Number(technical.ma20_bias);
       const ma60Bias = Number(technical.ma60_bias);
       const return20 = Number(technical.return20);
+      const trendPositive = /多頭|站上/.test(tags);
+      const volumeHot = /量能/.test(tags);
+      const hasRsi = Number.isFinite(rsi);
+      const hasMa20Bias = Number.isFinite(ma20Bias);
+      const hasReturn20 = Number.isFinite(return20);
+      const ma20Distance = hasMa20Bias ? Math.abs(ma20Bias) : 0;
       if (/空頭|跌破|偏弱/.test(tags) || ma20Bias < -0.08 || ma60Bias < -0.12) {
         return { label: "偏弱避開", tone: "avoid", hint: "先等趨勢修復" };
       }
-      if (Number.isFinite(rsi) && rsi >= 72) {
-        return { label: "風險升高", tone: "risk", hint: "RSI 偏熱" };
+      if (trendPositive && hasRsi && rsi >= 80 && (volumeHot || ma20Bias > 0.08 || return20 > 0.08)) {
+        return { label: "過熱不追", tone: "overheat", hint: "短線情緒偏熱" };
       }
-      if (/多頭|站上/.test(tags) && (!Number.isFinite(rsi) || rsi < 68) && Math.abs(ma20Bias || 0) <= 0.07) {
-        return { label: "可分批試單", tone: "entry", hint: "趨勢健康且未明顯過熱" };
-      }
-      if (/多頭|站上/.test(tags) && (return20 > 0.08 || ma20Bias > 0.08)) {
+      if (trendPositive && (ma20Bias > 0.1 || return20 > 0.1)) {
         return { label: "等拉回", tone: "wait", hint: "短線漲幅偏大" };
       }
-      if (/多頭|站上/.test(tags) && (!Number.isFinite(rsi) || rsi < 72)) {
-        return { label: "分批追蹤", tone: "accumulate", hint: "趨勢偏多" };
+      if (trendPositive && hasRsi && rsi >= 68 && rsi < 80 && ma20Distance <= 0.07) {
+        return { label: "可小量試單", tone: "nibble", hint: "偏熱但趨勢健康" };
+      }
+      if (trendPositive && (!hasRsi || (rsi >= 55 && rsi < 68)) && ma20Distance <= 0.08) {
+        return { label: "可分批試單", tone: "entry", hint: "趨勢健康且已降溫" };
+      }
+      if (trendPositive && hasRsi && rsi >= 78) {
+        return { label: "等降溫", tone: "cooldown", hint: "RSI 高檔鈍化" };
+      }
+      if (trendPositive) {
+        const reason = hasMa20Bias || hasReturn20 ? "等回測或整理" : "趨勢偏多";
+        return { label: "強勢觀察", tone: "accumulate", hint: reason };
       }
       if (/糾結|整理/.test(tags)) {
         return { label: "觀察突破", tone: "watch", hint: "等方向明確" };
