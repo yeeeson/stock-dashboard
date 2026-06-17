@@ -1342,24 +1342,30 @@
     .decision-chip {
       display: inline-flex;
       align-items: center;
-      justify-content: center;
-      position: relative;
-      min-height: 23px;
-      border: 1px solid color-mix(in srgb, var(--decision-tone, var(--accent)) 24%, var(--line));
-      border-left: 3px solid var(--decision-tone, var(--accent));
-      border-radius: 7px;
-      padding: 3px 8px 3px 9px;
-      background:
-        linear-gradient(90deg, color-mix(in srgb, var(--decision-tone, var(--accent)) 14%, transparent), transparent 72%),
-        color-mix(in srgb, var(--panel) 88%, var(--decision-tone, var(--accent)) 7%);
-      color: color-mix(in srgb, var(--decision-tone, var(--accent)) 78%, var(--text) 22%);
-      font-size: 11px;
-      font-weight: 900;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
       line-height: 1.2;
       white-space: nowrap;
-      box-shadow:
-        inset 0 1px 0 color-mix(in srgb, #ffffff 38%, transparent),
-        0 6px 14px color-mix(in srgb, var(--decision-tone, var(--accent)) 9%, transparent);
+      color: color-mix(in srgb, var(--decision-tone, var(--accent)) 88%, black 12%);
+    }
+    body.light .decision-chip {
+      color: color-mix(in srgb, var(--decision-tone, var(--accent)) 78%, black 22%);
+    }
+    .decision-chip-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: none;
+      background: color-mix(in srgb, var(--decision-tone, var(--accent)) 22%, var(--panel) 78%);
+      color: color-mix(in srgb, var(--decision-tone, var(--accent)) 88%, black 12%);
+      font-size: 11px;
+    }
+    body.light .decision-chip-icon {
+      color: color-mix(in srgb, var(--decision-tone, var(--accent)) 78%, black 22%);
     }
     .decision-chip.entry { --decision-tone: var(--positive); }
     .decision-chip.nibble { --decision-tone: var(--positive); }
@@ -2722,11 +2728,25 @@
       }
       return { label: "觀察", tone: "watch", hint: "訊號未完整" };
     }
+    function decisionIcon(tone) {
+      const icons = {
+        entry: "↑",
+        nibble: "+",
+        accumulate: "▲",
+        wait: "⏳",
+        cooldown: "↓",
+        watch: "◎",
+        risk: "!",
+        overheat: "▲",
+        avoid: "✕",
+      };
+      return icons[tone] || "•";
+    }
     function watchDecisionHtml(row, showHint = true) {
       const decision = watchDecision(row);
       return `
         <div class="watchlist-decision">
-          <span class="decision-chip ${escapeHtml(decision.tone)}">${escapeHtml(decision.label)}</span>
+          <span class="decision-chip ${escapeHtml(decision.tone)}"><span class="decision-chip-icon">${decisionIcon(decision.tone)}</span>${escapeHtml(decision.label)}</span>
           ${showHint ? `<small>${escapeHtml(decision.hint)}</small>` : ""}
         </div>
       `;
