@@ -551,6 +551,10 @@
       min-height: 0;
       padding: 14px;
     }
+    .primary-column .analysis-card .analysis-item.summary-analysis {
+      grid-template-columns: minmax(0, 1fr);
+      padding: 18px;
+    }
     .primary-column .analysis-card .analysis-item-title {
       font-size: 15px;
     }
@@ -575,8 +579,8 @@
     }
     .analysis-item.summary-analysis .analysis-main {
       width: 100%;
-      grid-template-columns: minmax(300px, 0.92fr) minmax(360px, 1.08fr);
-      gap: 14px;
+      grid-template-columns: minmax(280px, 0.72fr) minmax(0, 1.7fr);
+      gap: 18px;
       align-items: start;
     }
     .analysis-brief {
@@ -586,11 +590,11 @@
     }
     .analysis-support {
       display: grid;
-      gap: 8px;
+      gap: 12px;
       min-width: 0;
       border: 1px solid var(--line);
       border-radius: 8px;
-      padding: 12px;
+      padding: 16px;
       background:
         radial-gradient(circle at 0 0, color-mix(in srgb, var(--accent) 14%, transparent), transparent 42%),
         color-mix(in srgb, var(--panel) 74%, var(--bg) 26%);
@@ -603,14 +607,15 @@
     }
     .analysis-support-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 8px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
     }
     .analysis-support-card {
       min-width: 0;
       border: 1px solid var(--line);
       border-radius: 8px;
-      padding: 10px;
+      min-height: 104px;
+      padding: 14px;
       background: color-mix(in srgb, var(--panel-2) 80%, var(--bg) 20%);
     }
     .analysis-support-card span {
@@ -623,8 +628,8 @@
       display: block;
       margin-top: 4px;
       color: var(--text);
-      font-size: 13px;
-      line-height: 1.4;
+      font-size: 14px;
+      line-height: 1.5;
       overflow-wrap: anywhere;
     }
     .analysis-action-strip {
@@ -634,12 +639,16 @@
     }
     .analysis-action-line {
       display: grid;
-      grid-template-columns: 76px minmax(0, 1fr);
-      gap: 8px;
+      grid-template-columns: minmax(82px, 120px) minmax(0, 1fr);
+      gap: 12px;
       align-items: start;
       color: var(--muted);
       font-size: 12px;
       line-height: 1.55;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      background: color-mix(in srgb, var(--panel-2) 72%, transparent);
     }
     .analysis-action-line strong {
       color: var(--text);
@@ -1311,6 +1320,19 @@
       font-weight: 800;
       white-space: nowrap;
     }
+    .watchlist-name-line,
+    .sector-name-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      min-width: 0;
+    }
+    .watchlist-name-line .external-link,
+    .sector-name-line .external-link {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
     .watchlist-meta {
       color: var(--muted);
       font-size: 11px;
@@ -1332,6 +1354,7 @@
       line-height: 1.2;
       white-space: nowrap;
     }
+    .decision-chip.entry { --decision-tone: var(--positive); }
     .decision-chip.accumulate { --decision-tone: var(--positive); }
     .decision-chip.wait { --decision-tone: var(--gold); }
     .decision-chip.watch { --decision-tone: var(--accent); }
@@ -1662,6 +1685,9 @@
       .analysis-item.summary-analysis .analysis-main {
         grid-template-columns: 1fr;
       }
+      .analysis-support-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
       .position-grid {
         grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
       }
@@ -1747,6 +1773,9 @@
       .analysis-support-grid,
       .analysis-action-strip {
         gap: 8px;
+      }
+      .analysis-support-grid {
+        grid-template-columns: 1fr;
       }
       .analysis-action-line {
         grid-template-columns: 1fr;
@@ -2067,7 +2096,6 @@
               <th>MA240</th>
               <th>RSI14</th>
               <th>20 日報酬</th>
-              <th>狀態</th>
               <th class="reason-cell">觀察理由</th>
             </tr>
           </thead>
@@ -2367,6 +2395,7 @@
             <div class="analysis-support-card"><span>目前狀態</span><strong>${escapeHtml(row.status || "觀察")}</strong></div>
             <div class="analysis-support-card"><span>下一步</span><strong>${escapeHtml(nextStep)}</strong></div>
             <div class="analysis-support-card"><span>參考來源</span><strong>${escapeHtml(sources.length ? sources.slice(0, 2).join(" / ") : "即時報價與技術指標")}</strong></div>
+            <div class="analysis-support-card"><span>交叉檢查</span><strong>${checks.length || 0} 項訊號</strong></div>
           </div>
           ${leadingChecks.length ? `
             <div class="analysis-action-strip">
@@ -2612,11 +2641,14 @@
       if (Number.isFinite(rsi) && rsi >= 72) {
         return { label: "風險升高", tone: "risk", hint: "RSI 偏熱" };
       }
+      if (/多頭|站上/.test(tags) && (!Number.isFinite(rsi) || rsi < 68) && Math.abs(ma20Bias || 0) <= 0.07) {
+        return { label: "可分批試單", tone: "entry", hint: "趨勢健康且未明顯過熱" };
+      }
       if (/多頭|站上/.test(tags) && (return20 > 0.08 || ma20Bias > 0.08)) {
         return { label: "等拉回", tone: "wait", hint: "短線漲幅偏大" };
       }
-      if (/多頭|站上/.test(tags) && (!Number.isFinite(rsi) || rsi < 68)) {
-        return { label: "可分批追蹤", tone: "accumulate", hint: "趨勢較健康" };
+      if (/多頭|站上/.test(tags) && (!Number.isFinite(rsi) || rsi < 72)) {
+        return { label: "分批追蹤", tone: "accumulate", hint: "趨勢偏多" };
       }
       if (/糾結|整理/.test(tags)) {
         return { label: "觀察突破", tone: "watch", hint: "等方向明確" };
@@ -2877,7 +2909,7 @@
       return items.map((row) => `
         <tr>
           <td><strong>${escapeHtml(row.symbol)}</strong></td>
-          <td>${stockNameLink(row)}</td>
+          <td><div class="watchlist-name-line">${stockNameLink(row)}${watchDecisionHtml(row, false)}</div></td>
           <td>${numberText(row.latest_close, 2)}</td>
           <td>${numberText(row.technical?.ma5, 2)}</td>
           <td>${percent(row.technical?.ma5_bias)}</td>
@@ -2889,7 +2921,6 @@
           <td>${numberText(row.technical?.ma240, 2)}</td>
           <td>${numberText(row.technical?.rsi14, 2)}</td>
           <td>${percent(row.technical?.return20)}</td>
-          <td>${watchDecisionHtml(row, false)}</td>
           <td class="reason-cell">${escapeHtml(reasonText(row.reasons))}</td>
         </tr>
       `).join("");
@@ -2907,10 +2938,9 @@
         <article class="watchlist-tile" title="${escapeHtml(reasonText(row.reasons))}">
           <div class="watchlist-tile-head">
             <span class="watchlist-symbol">${escapeHtml(row.symbol)}</span>
-            <span>${stockNameLink(row)}</span>
+            <span class="watchlist-name-line">${stockNameLink(row)}${watchDecisionHtml(row, false)}</span>
             <span class="watchlist-price">${numberText(row.latest_close, 2)}</span>
           </div>
-          ${watchDecisionHtml(row)}
           ${technicalTagHtml(row.technical_tags)}
           <div class="watchlist-meta">${escapeHtml(compactWatchlistMeta(row))}</div>
         </article>
@@ -2932,8 +2962,7 @@
             <span>${numberText(row.latest_close, 2)}</span>
           </div>
           <div class="sector-stock-main">
-            <div>${stockNameLink(row)}</div>
-            ${watchDecisionHtml(row, false)}
+            <div class="sector-name-line">${stockNameLink(row)}${watchDecisionHtml(row, false)}</div>
             ${technicalTagHtml(row.technical_tags)}
             <div class="sector-technical">${escapeHtml(sectorTechnicalText(row))}</div>
           </div>
@@ -2945,7 +2974,7 @@
         ? items.map((row) => `
           <tr>
             <td><strong>${escapeHtml(row.symbol)}</strong></td>
-            <td>${usStockNameLink(row)}</td>
+            <td><div class="watchlist-name-line">${usStockNameLink(row)}${watchDecisionHtml(row, false)}</div></td>
             <td>${escapeHtml(row.category || "")}</td>
             <td>${numberText(row.latest_close, 2)}<br><small>${usQuoteMeta(row)}</small></td>
             <td>${percent(row.technical?.ma5_bias)}</td>
@@ -2957,11 +2986,10 @@
             <td>${numberText(row.technical?.ma240, 2)}</td>
             <td>${numberText(row.technical?.rsi14, 2)}</td>
             <td>${percent(row.technical?.return20)}</td>
-            <td>${watchDecisionHtml(row, false)}</td>
             <td class="reason-cell">${escapeHtml(reasonText(row.reasons))}</td>
           </tr>
         `).join("")
-        : `<tr><td colspan="15" class="empty">目前沒有美股觀察資料</td></tr>`;
+        : `<tr><td colspan="14" class="empty">目前沒有美股觀察資料</td></tr>`;
     }
     function renderSectorWatchlists(groups) {
       document.getElementById("sectorWatchlists").innerHTML = groups.length
