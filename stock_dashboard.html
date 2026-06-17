@@ -532,8 +532,8 @@
       position: sticky;
       top: 16px;
       flex: none;
-      max-height: calc(100vh - 124px);
-      overflow-y: auto;
+      max-height: none;
+      overflow: visible;
       padding-right: 2px;
       scrollbar-width: thin;
     }
@@ -575,7 +575,7 @@
     }
     .analysis-item.summary-analysis .analysis-main {
       width: 100%;
-      grid-template-columns: minmax(260px, 0.76fr) minmax(360px, 1.24fr);
+      grid-template-columns: minmax(300px, 0.92fr) minmax(360px, 1.08fr);
       gap: 14px;
       align-items: start;
     }
@@ -590,14 +590,60 @@
       min-width: 0;
       border: 1px solid var(--line);
       border-radius: 8px;
-      padding: 11px 12px;
-      background: color-mix(in srgb, var(--panel) 74%, var(--bg) 26%);
+      padding: 12px;
+      background:
+        radial-gradient(circle at 0 0, color-mix(in srgb, var(--accent) 14%, transparent), transparent 42%),
+        color-mix(in srgb, var(--panel) 74%, var(--bg) 26%);
     }
     .analysis-support-title {
       color: var(--muted);
       font-size: 11px;
       font-weight: 850;
       margin-bottom: 8px;
+    }
+    .analysis-support-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 8px;
+    }
+    .analysis-support-card {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: color-mix(in srgb, var(--panel-2) 80%, var(--bg) 20%);
+    }
+    .analysis-support-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+    .analysis-support-card strong {
+      display: block;
+      margin-top: 4px;
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.4;
+      overflow-wrap: anywhere;
+    }
+    .analysis-action-strip {
+      display: grid;
+      gap: 7px;
+      margin-top: 2px;
+    }
+    .analysis-action-line {
+      display: grid;
+      grid-template-columns: 76px minmax(0, 1fr);
+      gap: 8px;
+      align-items: start;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+    .analysis-action-line strong {
+      color: var(--text);
+      font-size: 12px;
     }
     .analysis-suggestion-list {
       margin: 0;
@@ -1121,10 +1167,16 @@
       display: grid;
       gap: 10px;
     }
-    .side-column .news-list {
-      max-height: 460px;
-      overflow: auto;
-      padding-right: 2px;
+    .news-card {
+      min-height: 0;
+    }
+    .news-card .news-list {
+      max-height: min(58vh, 560px);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-gutter: stable;
+      padding-right: 6px;
     }
     .news-item {
       border-top: 1px solid var(--line);
@@ -1209,6 +1261,9 @@
       display: grid;
       gap: 5px;
     }
+    .sector-stock-main .decision-chip {
+      justify-self: start;
+    }
     .sector-technical {
       color: var(--muted);
       font-size: 12px;
@@ -1261,6 +1316,37 @@
       font-size: 11px;
       line-height: 1.45;
       overflow-wrap: anywhere;
+    }
+    .decision-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 24px;
+      border: 1px solid color-mix(in srgb, var(--decision-tone, var(--accent)) 30%, var(--line));
+      border-radius: 999px;
+      padding: 3px 9px;
+      background: color-mix(in srgb, var(--decision-tone, var(--accent)) 12%, var(--panel));
+      color: var(--decision-tone, var(--accent));
+      font-size: 11px;
+      font-weight: 850;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+    .decision-chip.accumulate { --decision-tone: var(--positive); }
+    .decision-chip.wait { --decision-tone: var(--gold); }
+    .decision-chip.watch { --decision-tone: var(--accent); }
+    .decision-chip.risk { --decision-tone: var(--gold); }
+    .decision-chip.avoid { --decision-tone: var(--negative); }
+    .watchlist-decision {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+    .watchlist-decision small {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
     }
     .watchlist-tile .technical-tags {
       grid-template-columns: repeat(2, minmax(82px, 1fr));
@@ -1597,7 +1683,8 @@
       .chart {
         height: 260px;
       }
-      .analysis-check {
+      .analysis-check,
+      .primary-column .analysis-card .analysis-check {
         grid-template-columns: 1fr;
       }
       .analysis-check-status {
@@ -1635,6 +1722,52 @@
       }
       .position-price-row {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .analysis-item.summary-analysis,
+      .primary-column .analysis-card .analysis-item {
+        padding: 16px;
+        gap: 12px;
+      }
+      .analysis-item-head {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: start;
+      }
+      .analysis-item-title {
+        font-size: 16px;
+      }
+      .analysis-support {
+        padding: 0;
+        border: 0;
+        background: transparent;
+      }
+      .analysis-support-title {
+        margin-bottom: 0;
+      }
+      .analysis-support-grid,
+      .analysis-action-strip {
+        gap: 8px;
+      }
+      .analysis-action-line {
+        grid-template-columns: 1fr;
+        gap: 3px;
+      }
+      .analysis-check {
+        padding: 10px;
+        gap: 4px;
+      }
+      .analysis-check-detail {
+        line-height: 1.65;
+      }
+      .news-card .news-list {
+        max-height: min(62vh, 520px);
+      }
+      .watchlist-compact {
+        grid-template-columns: 1fr;
+      }
+      .technical-tags {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        max-width: none;
       }
       .chart-head {
         display: grid;
@@ -1934,6 +2067,7 @@
               <th>MA240</th>
               <th>RSI14</th>
               <th>20 日報酬</th>
+              <th>狀態</th>
               <th class="reason-cell">觀察理由</th>
             </tr>
           </thead>
@@ -2221,6 +2355,32 @@
         .filter(Boolean)
         .slice(0, 3);
     }
+    function renderSummarySupport(row, suggestions) {
+      const checks = Array.isArray(row.cross_checks) ? row.cross_checks : [];
+      const sources = Array.isArray(row.source_basis) ? row.source_basis.filter(Boolean) : [];
+      const leadingChecks = checks.slice(0, 3);
+      const nextStep = suggestions[0] || row.suggestion || "先維持追蹤，等更多訊號確認。";
+      return `
+        <div class="analysis-support">
+          <div class="analysis-support-title">快速判讀</div>
+          <div class="analysis-support-grid">
+            <div class="analysis-support-card"><span>目前狀態</span><strong>${escapeHtml(row.status || "觀察")}</strong></div>
+            <div class="analysis-support-card"><span>下一步</span><strong>${escapeHtml(nextStep)}</strong></div>
+            <div class="analysis-support-card"><span>參考來源</span><strong>${escapeHtml(sources.length ? sources.slice(0, 2).join(" / ") : "即時報價與技術指標")}</strong></div>
+          </div>
+          ${leadingChecks.length ? `
+            <div class="analysis-action-strip">
+              ${leadingChecks.map((check) => `
+                <div class="analysis-action-line">
+                  <strong>${escapeHtml(check.label || "觀察")}</strong>
+                  <span>${escapeHtml([check.status, check.detail].filter(Boolean).join("："))}</span>
+                </div>
+              `).join("")}
+            </div>
+          ` : ""}
+        </div>
+      `;
+    }
     function renderAnalysisItem(row) {
       const level = escapeHtml(row.level || "info");
       const status = escapeHtml(row.status || row.level || "info");
@@ -2243,11 +2403,7 @@
                 </ul>
                 ${renderAnalysisSources(row)}
               </div>
-              <div class="analysis-support">
-                <div class="analysis-support-title">資料品質與判斷依據</div>
-                ${renderAnalysisChecks(row)}
-                ${renderAnalysisQuality(row)}
-              </div>
+              ${renderSummarySupport(row, suggestions)}
             </div>
           </div>
         `;
@@ -2442,6 +2598,39 @@
       return rows.length
         ? `<div class="technical-tags">${rows.map((tag) => `<span class="technical-tag ${technicalTagClass(String(tag))}" title="${escapeHtml(tag)}">${escapeHtml(tag)}</span>`).join("")}</div>`
         : "";
+    }
+    function watchDecision(row) {
+      const technical = row.technical || {};
+      const tags = Array.isArray(row.technical_tags) ? row.technical_tags.join(" ") : "";
+      const rsi = Number(technical.rsi14);
+      const ma20Bias = Number(technical.ma20_bias);
+      const ma60Bias = Number(technical.ma60_bias);
+      const return20 = Number(technical.return20);
+      if (/空頭|跌破|偏弱/.test(tags) || ma20Bias < -0.08 || ma60Bias < -0.12) {
+        return { label: "偏弱避開", tone: "avoid", hint: "先等趨勢修復" };
+      }
+      if (Number.isFinite(rsi) && rsi >= 72) {
+        return { label: "風險升高", tone: "risk", hint: "RSI 偏熱" };
+      }
+      if (/多頭|站上/.test(tags) && (return20 > 0.08 || ma20Bias > 0.08)) {
+        return { label: "等拉回", tone: "wait", hint: "短線漲幅偏大" };
+      }
+      if (/多頭|站上/.test(tags) && (!Number.isFinite(rsi) || rsi < 68)) {
+        return { label: "可分批追蹤", tone: "accumulate", hint: "趨勢較健康" };
+      }
+      if (/糾結|整理/.test(tags)) {
+        return { label: "觀察突破", tone: "watch", hint: "等方向明確" };
+      }
+      return { label: "觀察", tone: "watch", hint: "訊號未完整" };
+    }
+    function watchDecisionHtml(row, showHint = true) {
+      const decision = watchDecision(row);
+      return `
+        <div class="watchlist-decision">
+          <span class="decision-chip ${escapeHtml(decision.tone)}">${escapeHtml(decision.label)}</span>
+          ${showHint ? `<small>${escapeHtml(decision.hint)}</small>` : ""}
+        </div>
+      `;
     }
     function tradeClass(row) {
       return "trade-neutral";
@@ -2700,6 +2889,7 @@
           <td>${numberText(row.technical?.ma240, 2)}</td>
           <td>${numberText(row.technical?.rsi14, 2)}</td>
           <td>${percent(row.technical?.return20)}</td>
+          <td>${watchDecisionHtml(row, false)}</td>
           <td class="reason-cell">${escapeHtml(reasonText(row.reasons))}</td>
         </tr>
       `).join("");
@@ -2720,6 +2910,7 @@
             <span>${stockNameLink(row)}</span>
             <span class="watchlist-price">${numberText(row.latest_close, 2)}</span>
           </div>
+          ${watchDecisionHtml(row)}
           ${technicalTagHtml(row.technical_tags)}
           <div class="watchlist-meta">${escapeHtml(compactWatchlistMeta(row))}</div>
         </article>
@@ -2742,6 +2933,7 @@
           </div>
           <div class="sector-stock-main">
             <div>${stockNameLink(row)}</div>
+            ${watchDecisionHtml(row, false)}
             ${technicalTagHtml(row.technical_tags)}
             <div class="sector-technical">${escapeHtml(sectorTechnicalText(row))}</div>
           </div>
@@ -2765,10 +2957,11 @@
             <td>${numberText(row.technical?.ma240, 2)}</td>
             <td>${numberText(row.technical?.rsi14, 2)}</td>
             <td>${percent(row.technical?.return20)}</td>
+            <td>${watchDecisionHtml(row, false)}</td>
             <td class="reason-cell">${escapeHtml(reasonText(row.reasons))}</td>
           </tr>
         `).join("")
-        : `<tr><td colspan="14" class="empty">目前沒有美股觀察資料</td></tr>`;
+        : `<tr><td colspan="15" class="empty">目前沒有美股觀察資料</td></tr>`;
     }
     function renderSectorWatchlists(groups) {
       document.getElementById("sectorWatchlists").innerHTML = groups.length
