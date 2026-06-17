@@ -1343,16 +1343,23 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 24px;
-      border: 1px solid color-mix(in srgb, var(--decision-tone, var(--accent)) 30%, var(--line));
-      border-radius: 999px;
-      padding: 3px 9px;
-      background: color-mix(in srgb, var(--decision-tone, var(--accent)) 12%, var(--panel));
-      color: var(--decision-tone, var(--accent));
+      position: relative;
+      min-height: 23px;
+      border: 1px solid color-mix(in srgb, var(--decision-tone, var(--accent)) 24%, var(--line));
+      border-left: 3px solid var(--decision-tone, var(--accent));
+      border-radius: 7px;
+      padding: 3px 8px 3px 9px;
+      background:
+        linear-gradient(90deg, color-mix(in srgb, var(--decision-tone, var(--accent)) 14%, transparent), transparent 72%),
+        color-mix(in srgb, var(--panel) 88%, var(--decision-tone, var(--accent)) 7%);
+      color: color-mix(in srgb, var(--decision-tone, var(--accent)) 78%, var(--text) 22%);
       font-size: 11px;
-      font-weight: 850;
+      font-weight: 900;
       line-height: 1.2;
       white-space: nowrap;
+      box-shadow:
+        inset 0 1px 0 color-mix(in srgb, #ffffff 38%, transparent),
+        0 6px 14px color-mix(in srgb, var(--decision-tone, var(--accent)) 9%, transparent);
     }
     .decision-chip.entry { --decision-tone: var(--positive); }
     .decision-chip.nibble { --decision-tone: var(--positive); }
