@@ -1342,24 +1342,30 @@
     .decision-chip {
       display: inline-flex;
       align-items: center;
-      justify-content: center;
-      position: relative;
-      min-height: 23px;
-      border: 1px solid color-mix(in srgb, var(--decision-tone, var(--accent)) 24%, var(--line));
-      border-left: 3px solid var(--decision-tone, var(--accent));
-      border-radius: 7px;
-      padding: 3px 8px 3px 9px;
-      background:
-        linear-gradient(90deg, color-mix(in srgb, var(--decision-tone, var(--accent)) 14%, transparent), transparent 72%),
-        color-mix(in srgb, var(--panel) 88%, var(--decision-tone, var(--accent)) 7%);
-      color: color-mix(in srgb, var(--decision-tone, var(--accent)) 78%, var(--text) 22%);
-      font-size: 11px;
-      font-weight: 900;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
       line-height: 1.2;
       white-space: nowrap;
-      box-shadow:
-        inset 0 1px 0 color-mix(in srgb, #ffffff 38%, transparent),
-        0 6px 14px color-mix(in srgb, var(--decision-tone, var(--accent)) 9%, transparent);
+      color: color-mix(in srgb, var(--decision-tone, var(--accent)) 88%, black 12%);
+    }
+    body.light .decision-chip {
+      color: color-mix(in srgb, var(--decision-tone, var(--accent)) 78%, black 22%);
+    }
+    .decision-chip-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: none;
+      background: color-mix(in srgb, var(--decision-tone, var(--accent)) 22%, var(--panel) 78%);
+      color: color-mix(in srgb, var(--decision-tone, var(--accent)) 88%, black 12%);
+      font-size: 11px;
+    }
+    body.light .decision-chip-icon {
+      color: color-mix(in srgb, var(--decision-tone, var(--accent)) 78%, black 22%);
     }
     .decision-chip.entry { --decision-tone: var(--positive); }
     .decision-chip.nibble { --decision-tone: var(--positive); }
@@ -1571,6 +1577,117 @@
     .external-link:hover {
       text-decoration: underline;
     }
+    .dynamic-candidate-card {
+      overflow: hidden;
+    }
+    .dynamic-candidate-table {
+      margin-top: 12px;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: color-mix(in srgb, var(--panel-2) 58%, transparent);
+    }
+    .dynamic-candidate-head,
+    .dynamic-candidate-row {
+      display: grid;
+      grid-template-columns:
+        minmax(142px, 1.2fr)
+        minmax(58px, .5fr)
+        minmax(52px, .45fr)
+        minmax(70px, .6fr)
+        minmax(66px, .56fr)
+        minmax(66px, .56fr)
+        minmax(78px, .66fr)
+        minmax(180px, 1.55fr);
+      gap: 8px;
+      align-items: center;
+      min-width: 820px;
+      padding: 11px 13px;
+    }
+    .dynamic-candidate-head {
+      background: color-mix(in srgb, var(--panel-2) 88%, var(--bg) 12%);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 850;
+    }
+    .dynamic-candidate-row {
+      border-top: 1px solid var(--line);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .dynamic-candidate-row:hover {
+      background: color-mix(in srgb, var(--accent) 5%, transparent);
+    }
+    .dynamic-target,
+    .dynamic-catalyst {
+      min-width: 0;
+    }
+    .dynamic-target strong {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 13px;
+    }
+    .dynamic-target-meta,
+    .dynamic-catalyst-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 5px;
+    }
+    .held-badge,
+    .catalyst-badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 21px;
+      border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+      border-radius: 6px;
+      padding: 2px 7px;
+      background: color-mix(in srgb, var(--accent) 10%, transparent);
+      color: var(--accent);
+      font-size: 10px;
+      font-weight: 850;
+      white-space: nowrap;
+    }
+    .catalyst-badge.risk {
+      border-color: color-mix(in srgb, var(--negative) 35%, var(--line));
+      background: color-mix(in srgb, var(--negative) 10%, transparent);
+      color: var(--negative);
+    }
+    .catalyst-badge.neutral {
+      border-color: var(--line);
+      background: color-mix(in srgb, var(--panel-2) 85%, transparent);
+      color: var(--muted);
+    }
+    .dynamic-catalyst a {
+      display: block;
+      margin-top: 5px;
+      color: var(--text);
+      font-weight: 750;
+      overflow-wrap: anywhere;
+    }
+    .dynamic-catalyst small {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+    }
+    .candidate-cell::before {
+      display: none;
+    }
+    .candidate-disclaimer {
+      margin-top: 12px;
+      border-left: 3px solid var(--gold);
+      padding: 10px 12px;
+      background: var(--warning-soft);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+    .market-opportunity-news-card .news-list {
+      max-height: 430px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-gutter: stable;
+    }
     .modal {
       position: fixed;
       inset: 0;
@@ -1748,6 +1865,42 @@
       }
       .analysis-check-status {
         white-space: normal;
+      }
+    }
+    @media (max-width: 760px) {
+      .dynamic-candidate-table {
+        overflow: visible;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+      }
+      .dynamic-candidate-head {
+        display: none;
+      }
+      .dynamic-candidate-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        min-width: 0;
+        gap: 12px 14px;
+        padding: 15px 0;
+      }
+      .dynamic-target,
+      .dynamic-catalyst {
+        grid-column: 1 / -1;
+      }
+      .candidate-cell {
+        min-width: 0;
+      }
+      .candidate-cell::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 4px;
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 800;
+      }
+      .dynamic-catalyst a {
+        font-size: 12px;
       }
     }
     @media (max-width: 460px) {
@@ -2055,6 +2208,35 @@
             <div class="compact-legend market-index-legend" id="usMarketIndexLegend"></div>
           </section>
         </div>
+
+        <section class="card dynamic-candidate-card" id="dynamicCandidateSection" data-page="tw">
+          <div class="chart-head">
+            <div>
+              <div class="label">今日可分批試單候選</div>
+              <div class="note" id="dynamicScanMeta">尚未執行掃描</div>
+            </div>
+          </div>
+          <div class="dynamic-candidate-table" role="table" aria-label="動態試單候選">
+            <div class="dynamic-candidate-head" role="row">
+              <span>標的／狀態</span>
+              <span>最新價</span>
+              <span>RSI14</span>
+              <span>MA20 乖離</span>
+              <span>歷史 20 日</span>
+              <span>歷史 60 日</span>
+              <span>60 日最大回撤</span>
+              <span>催化與風險</span>
+            </div>
+            <div id="dynamicCandidateRows"></div>
+          </div>
+          <div class="candidate-disclaimer">技術條件符合不等於基本面良好。入手前仍需確認營收、獲利、估值、產業循環與重大風險；歷史報酬不代表未來報酬。</div>
+        </section>
+
+        <section class="card market-opportunity-news-card" data-page="tw">
+          <div class="label">市場催化新聞</div>
+          <div class="note">不限目前持股；新聞只是可能催化，仍需搭配價格、財報與公司公告確認。</div>
+          <div class="news-list" id="marketOpportunityNewsRows"></div>
+        </section>
 
         <section class="card watchlist-card" id="watchlistSection" data-page="tw">
           <div class="label">觀察名單</div>
@@ -2695,19 +2877,19 @@
       const hasMa20Bias = Number.isFinite(ma20Bias);
       const hasReturn20 = Number.isFinite(return20);
       const ma20Distance = hasMa20Bias ? Math.abs(ma20Bias) : 0;
-      if (/空頭|跌破|偏弱/.test(tags) || ma20Bias < -0.08 || ma60Bias < -0.12) {
+      if (/空頭|跌破|偏弱/.test(tags) || ma20Bias < -8 || ma60Bias < -12) {
         return { label: "偏弱避開", tone: "avoid", hint: "先等趨勢修復" };
       }
-      if (trendPositive && hasRsi && rsi >= 80 && (volumeHot || ma20Bias > 0.08 || return20 > 0.08)) {
+      if (trendPositive && hasRsi && rsi >= 80 && (volumeHot || ma20Bias > 8 || return20 > 8)) {
         return { label: "過熱不追", tone: "overheat", hint: "短線情緒偏熱" };
       }
-      if (trendPositive && (ma20Bias > 0.1 || return20 > 0.1)) {
+      if (trendPositive && (ma20Bias > 10 || return20 > 10)) {
         return { label: "等拉回", tone: "wait", hint: "短線漲幅偏大" };
       }
-      if (trendPositive && hasRsi && rsi >= 68 && rsi < 80 && ma20Distance <= 0.07) {
+      if (trendPositive && hasRsi && rsi >= 68 && rsi < 80 && ma20Distance <= 7) {
         return { label: "可小量試單", tone: "nibble", hint: "偏熱但趨勢健康" };
       }
-      if (trendPositive && (!hasRsi || (rsi >= 55 && rsi < 68)) && ma20Distance <= 0.08) {
+      if (trendPositive && (!hasRsi || (rsi >= 55 && rsi < 68)) && ma20Distance <= 8) {
         return { label: "可分批試單", tone: "entry", hint: "趨勢健康且已降溫" };
       }
       if (trendPositive && hasRsi && rsi >= 78) {
@@ -2722,14 +2904,74 @@
       }
       return { label: "觀察", tone: "watch", hint: "訊號未完整" };
     }
+    function decisionIcon(tone) {
+      const icons = {
+        entry: "↑",
+        nibble: "+",
+        accumulate: "▲",
+        wait: "⏳",
+        cooldown: "↓",
+        watch: "◎",
+        risk: "!",
+        overheat: "▲",
+        avoid: "✕",
+      };
+      return icons[tone] || "•";
+    }
     function watchDecisionHtml(row, showHint = true) {
       const decision = watchDecision(row);
       return `
         <div class="watchlist-decision">
-          <span class="decision-chip ${escapeHtml(decision.tone)}">${escapeHtml(decision.label)}</span>
+          <span class="decision-chip ${escapeHtml(decision.tone)}"><span class="decision-chip-icon">${decisionIcon(decision.tone)}</span>${escapeHtml(decision.label)}</span>
           ${showHint ? `<small>${escapeHtml(decision.hint)}</small>` : ""}
         </div>
       `;
+    }
+    function dynamicDecisionHtml(row) {
+      const decision = row.decision || {};
+      const tone = decision.tone || "entry";
+      return `<span class="decision-chip ${escapeHtml(tone)}"><span class="decision-chip-icon">${decisionIcon(tone)}</span>${escapeHtml(decision.label || "可分批試單")}</span>`;
+    }
+    function dynamicCatalystHtml(row) {
+      const catalyst = row.catalyst || null;
+      if (!catalyst) {
+        return `
+          <div class="dynamic-catalyst-meta"><span class="catalyst-badge neutral">近期無明確催化</span></div>
+          <small>基本面尚待確認：請查營收、獲利、估值與產業循環。</small>
+        `;
+      }
+      const tone = ["positive", "risk", "neutral"].includes(catalyst.tone) ? catalyst.tone : "neutral";
+      const link = safeUrl(catalyst.link);
+      const title = escapeHtml(catalyst.title || "未命名新聞");
+      const linkedTitle = link
+        ? `<a href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">${title}</a>`
+        : `<a>${title}</a>`;
+      return `
+        <div class="dynamic-catalyst-meta"><span class="catalyst-badge ${escapeHtml(tone)}">${escapeHtml(catalyst.label || "方向未明")}</span></div>
+        ${linkedTitle}
+        <small>${displayNewsDate(catalyst.published_at)} · ${escapeHtml(catalyst.source || "未知來源")} · 基本面尚待確認</small>
+      `;
+    }
+    function dynamicCandidateRows(items) {
+      return items.map((row) => `
+        <div class="dynamic-candidate-row" role="row">
+          <div class="candidate-cell dynamic-target" data-label="標的／狀態">
+            <strong>${stockNameLink(row)}</strong>
+            <div class="dynamic-target-meta">
+              <span>${escapeHtml(row.symbol)}</span>
+              ${dynamicDecisionHtml(row)}
+              ${row.held ? `<span class="held-badge">已持有</span>` : ""}
+            </div>
+          </div>
+          <div class="candidate-cell" data-label="最新價">${numberText(row.latest_close, 2)}<br><small>${displayDate(row.latest_date)}</small></div>
+          <div class="candidate-cell" data-label="RSI14">${numberText(row.technical?.rsi14, 1)}</div>
+          <div class="candidate-cell" data-label="MA20 乖離">${percent(row.technical?.ma20_bias)}</div>
+          <div class="candidate-cell ${classFor(row.technical?.return20)}" data-label="歷史 20 日">${percent(row.technical?.return20)}</div>
+          <div class="candidate-cell ${classFor(row.technical?.return60)}" data-label="歷史 60 日">${percent(row.technical?.return60)}</div>
+          <div class="candidate-cell ${classFor(row.technical?.maxDrawdown60)}" data-label="60 日最大回撤">${percent(row.technical?.maxDrawdown60)}</div>
+          <div class="candidate-cell dynamic-catalyst" data-label="催化與風險">${dynamicCatalystHtml(row)}</div>
+        </div>
+      `).join("");
     }
     function tradeClass(row) {
       return "trade-neutral";
@@ -2782,8 +3024,9 @@
         )).join("")
         : `<div class="rail-meta">目前沒有美股觀察資料</div>`;
     }
-    function apiUrl(range) {
+    function apiUrl(range, forceRefresh = false) {
       const query = new URLSearchParams({ user, token, format: "json", range });
+      if (forceRefresh) query.set("refresh", "1");
       return `https://${project}.supabase.co/functions/v1/stock-dashboard?${query}`;
     }
     function setError(message) {
@@ -2824,7 +3067,7 @@
         `;
       }).join("");
     }
-    async function loadDashboard() {
+    async function loadDashboard(forceRefresh = false) {
       setError("");
       if (!project || !user || !token) {
         setError("URL 缺少 project、user 或 token 參數。");
@@ -2832,22 +3075,23 @@
       }
       const range = document.getElementById("rangeSelect").value;
       const controller = new AbortController();
-      const timeoutId = window.setTimeout(() => controller.abort(), 15000);
+      const timeoutId = window.setTimeout(() => controller.abort(), 30000);
+      const requestUrl = apiUrl(range, forceRefresh);
       setLoading(true);
       try {
-        const response = await fetch(apiUrl(range), { cache: "no-store", signal: controller.signal });
+        const response = await fetch(requestUrl, { cache: "no-store", signal: controller.signal });
         const text = await response.text();
         if (!response.ok) {
-          setError(`${text}\n\nAPI：${apiUrl(range)}`);
+          setError(`${text}\n\nAPI：${requestUrl}`);
           return;
         }
         latestPayload = JSON.parse(text);
         render(latestPayload);
       } catch (error) {
         const reason = error && error.name === "AbortError"
-          ? "讀取超過 15 秒，請稍後再試。"
+          ? "讀取超過 30 秒，請稍後再試。"
           : "讀取 Supabase API 失敗，請確認 Edge Function 與 CORS 設定。";
-        setError(`${reason}\n\nAPI：${apiUrl(range)}`);
+        setError(`${reason}\n\nAPI：${requestUrl}`);
       } finally {
         window.clearTimeout(timeoutId);
         setLoading(false);
@@ -2864,6 +3108,9 @@
       const analysis = payload.analysis || [];
       const watchlist = payload.watchlist || [];
       const sectorWatchlists = payload.sector_watchlists || [];
+      const dynamicCandidates = payload.dynamic_candidates || [];
+      const marketOpportunityNews = payload.market_opportunity_news || [];
+      const dynamicScan = payload.dynamic_scan || {};
       const usWatchlist = payload.us_watchlist || [];
       const marketTrend = payload.market_trend || {};
       const news = payload.news || [];
@@ -2932,6 +3179,39 @@
       document.getElementById("watchlistRows").innerHTML = watchlist.length
         ? watchlistTileRows(watchlist)
         : `<div class="empty">目前沒有符合條件的觀察標的</div>`;
+
+      const scanWarnings = Array.isArray(dynamicScan.warnings) ? dynamicScan.warnings.filter(Boolean) : [];
+      document.getElementById("dynamicScanMeta").textContent = [
+        `市場資料 ${displayDate(dynamicScan.market_date)}`,
+        `流動性母體 ${numberText(dynamicScan.universe_count, 0)} 檔`,
+        `深度掃描 ${numberText(dynamicScan.deep_scan_count, 0)} 檔`,
+        `符合 ${numberText(dynamicScan.matched_count, 0)} 檔`,
+        dynamicScan.cached ? "使用 10 分鐘快取" : "本次即時掃描",
+      ].join(" · ");
+      document.getElementById("dynamicCandidateRows").innerHTML = dynamicCandidates.length
+        ? dynamicCandidateRows(dynamicCandidates)
+        : `<div class="empty">${scanWarnings.length ? "掃描資料暫時無法完整取得，請稍後刷新。" : "今日沒有股票符合可分批試單條件；系統不會降低標準湊數。"}</div>`;
+
+      const uniqueOpportunityNews = dedupeNews(marketOpportunityNews);
+      document.getElementById("marketOpportunityNewsRows").innerHTML = uniqueOpportunityNews.length
+        ? uniqueOpportunityNews.map((row) => {
+          const catalyst = row.catalyst || {};
+          const tone = ["positive", "risk", "neutral"].includes(catalyst.tone) ? catalyst.tone : "neutral";
+          return `
+            <div class="news-item">
+              <div class="news-meta">
+                <span>${displayNewsDate(row.date)}</span>
+                <span>${escapeHtml(row.symbol || "")}</span>
+                <span>${escapeHtml(row.display_name || "")}</span>
+                <span>${escapeHtml(row.source || "")}</span>
+                <span class="catalyst-badge ${escapeHtml(tone)}">${escapeHtml(catalyst.label || "方向未明")}</span>
+              </div>
+              <div class="news-item-title">${newsTitle(row)}</div>
+              <div class="news-summary">${escapeHtml(row.description || "可能催化仍需搭配價格、財報與公司公告確認。")}</div>
+            </div>
+          `;
+        }).join("")
+        : `<div class="empty">最近沒有找到動態掃描候選的可信催化新聞</div>`;
 
       renderSectorWatchlists(sectorWatchlists);
       renderUsWatchlist(usWatchlist);
@@ -3723,8 +4003,8 @@
       document.body.style.overflow = "";
     }
 
-    document.getElementById("refreshButton").addEventListener("click", loadDashboard);
-    document.getElementById("rangeSelect").addEventListener("change", loadDashboard);
+    document.getElementById("refreshButton").addEventListener("click", () => loadDashboard(true));
+    document.getElementById("rangeSelect").addEventListener("change", () => loadDashboard(false));
     document.getElementById("themeButton").addEventListener("click", () => {
       applyTheme(document.body.classList.contains("light") ? "dark" : "light");
     });
