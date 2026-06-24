@@ -2124,11 +2124,12 @@
       <main class="content" id="overview">
 
     <div class="kpis" data-page="tw">
-      <div class="card"><div class="label">總估計淨值</div><div class="value" id="marketValue">0 元</div></div>
+      <div class="card"><div class="label">總市值</div><div class="value" id="marketValue">0 元</div></div>
       <div class="card"><div class="label">總含費成本</div><div class="value" id="totalCost">0 元</div></div>
-      <div class="card"><div class="label">未實現損益</div><div class="value" id="profitLoss">0 元</div></div>
+      <div class="card"><div class="label">帳面損益</div><div class="value" id="profitLoss">0 元</div></div>
+      <div class="card"><div class="label">估賣後損益</div><div class="value" id="netProfitLoss">0 元</div></div>
       <div class="card"><div class="label">已實現損益</div><div class="value" id="realizedProfitLoss">0 元</div></div>
-      <div class="card"><div class="label">總損益率</div><div class="value" id="profitPercent">0%</div></div>
+      <div class="card"><div class="label">帳面損益率</div><div class="value" id="profitPercent">0%</div></div>
     </div>
 
     <div class="dashboard-layout" data-page="tw us">
@@ -2166,12 +2167,13 @@
                   <th>均價</th>
                   <th>最新價</th>
                   <th>含費成本</th>
-                  <th>估計淨值</th>
+                  <th>市值</th>
                   <th>估賣費</th>
                   <th>估賣稅</th>
-                  <th>損益</th>
+                  <th>帳面損益</th>
+                  <th>估賣後損益</th>
                   <th>已實現</th>
-                  <th>損益率</th>
+                  <th>帳面損益率</th>
                 </tr>
               </thead>
               <tbody id="positionRows"></tbody>
@@ -2329,7 +2331,8 @@
             <div class="term-item"><strong>20 日年化波動</strong><span>用近 20 日價格變動推估一年化波動程度，數值越高代表價格震盪越大。</span></div>
             <div class="term-item"><strong>60 日最大回撤</strong><span>近 60 個交易日內，從高點跌到低點的最大跌幅，用來看近期風險與修正幅度。</span></div>
             <div class="term-item"><strong>量能 / 20 日均量</strong><span>最新成交量相對近 20 日平均成交量的倍數，大於 1 代表成交量高於近期平均。</span></div>
-            <div class="term-item"><strong>未實現損益</strong><span>用目前價格估算的帳面賺賠，尚未賣出前都只是浮動損益。</span></div>
+            <div class="term-item"><strong>帳面損益</strong><span>用目前價格乘以股數後減掉含費成本，接近券商 app 常見的庫存未實現損益口徑，尚未扣除未來賣出稅費。</span></div>
+            <div class="term-item"><strong>估賣後損益</strong><span>假設現在賣出，先從市值扣掉預估賣出手續費與證交稅，再和含費成本相比，通常會比帳面損益低。</span></div>
             <div class="term-item"><strong>買入點</strong><span>趨勢線上的同色圓點來自你的投資紀錄，滑到點上會顯示該筆紀錄的買入均價。</span></div>
           </div>
         </section>
@@ -3032,14 +3035,14 @@
       status.innerHTML = [
         `報價 ${escapeHtml(quoteText)} 檔`,
         `最新 ${escapeHtml(displayDate(summary.latest_quote_date))}`,
-        `損益 ${escapeHtml(percent(summary.total_profit_loss_percent))}`,
+        `帳面 ${escapeHtml(percent(summary.total_gross_profit_loss_percent))}`,
       ].join("<br>");
 
       document.getElementById("sidebarPositions").innerHTML = positions.length
         ? positions.slice(0, 8).map((row) => railItem(
           row.display_name || row.symbol,
-          `${percent(row.profit_loss_percent)}`,
-          classFor(row.profit_loss_percent),
+          `${percent(row.gross_profit_loss_percent)}`,
+          classFor(row.gross_profit_loss_percent),
         )).join("")
         : `<div class="rail-meta">目前沒有持股資料</div>`;
 
@@ -3087,13 +3090,14 @@
                 <strong>${stockNameLink(row)}</strong>
                 <span>${escapeHtml(row.symbol)} · ${numberText(row.shares, 3)} 股</span>
               </div>
-              <span class="position-return ${classFor(row.profit_loss_percent)}">${percent(row.profit_loss_percent)}</span>
+              <span class="position-return ${classFor(row.gross_profit_loss_percent)}">${percent(row.gross_profit_loss_percent)}</span>
             </div>
             <div class="position-price-row">
               <div class="position-metric"><span>最新價</span><strong>${numberText(row.latest_close, 2)}</strong></div>
               <div class="position-metric"><span>均價</span><strong>${numberText(row.average_cost, 2)}</strong></div>
-              <div class="position-metric"><span>估計淨值</span><strong>${money(row.market_value)}</strong></div>
-              <div class="position-metric"><span>未實現損益</span><strong class="${classFor(row.profit_loss)}">${money(row.profit_loss)}</strong></div>
+              <div class="position-metric"><span>市值</span><strong>${money(row.gross_market_value)}</strong></div>
+              <div class="position-metric"><span>帳面損益</span><strong class="${classFor(row.gross_profit_loss)}">${money(row.gross_profit_loss)}</strong></div>
+              <div class="position-metric"><span>估賣後</span><strong class="${classFor(row.profit_loss)}">${money(row.profit_loss)}</strong></div>
             </div>
             <div class="position-bar" aria-label="組合權重 ${weight.toFixed(1)}%">
               <div class="position-bar-fill" style="--weight:${weight.toFixed(1)}%"></div>
@@ -3154,14 +3158,16 @@
       const generatedAt = payload.generated_at ? new Date(payload.generated_at).toLocaleString() : "無資料";
       document.getElementById("subtitle").textContent = `最新報價日 ${displayDate(summary.latest_quote_date)}，即時報價 ${summary.realtime_quote_count || 0}/${summary.quote_count || 0} 檔，更新時間 ${generatedAt}`;
       renderMarketSession();
-      document.getElementById("marketValue").textContent = money(summary.total_market_value);
+      document.getElementById("marketValue").textContent = money(summary.total_gross_market_value ?? summary.total_market_value);
       document.getElementById("totalCost").textContent = money(summary.total_cost);
-      document.getElementById("profitLoss").textContent = money(summary.total_profit_loss);
-      document.getElementById("profitLoss").className = `value ${classFor(summary.total_profit_loss)}`;
+      document.getElementById("profitLoss").textContent = money(summary.total_gross_profit_loss);
+      document.getElementById("profitLoss").className = `value ${classFor(summary.total_gross_profit_loss)}`;
+      document.getElementById("netProfitLoss").textContent = money(summary.total_profit_loss);
+      document.getElementById("netProfitLoss").className = `value ${classFor(summary.total_profit_loss)}`;
       document.getElementById("realizedProfitLoss").textContent = money(summary.total_realized_profit_loss);
       document.getElementById("realizedProfitLoss").className = `value ${classFor(summary.total_realized_profit_loss)}`;
-      document.getElementById("profitPercent").textContent = percent(summary.total_profit_loss_percent);
-      document.getElementById("profitPercent").className = `value ${classFor(summary.total_profit_loss_percent)}`;
+      document.getElementById("profitPercent").textContent = percent(summary.total_gross_profit_loss_percent);
+      document.getElementById("profitPercent").className = `value ${classFor(summary.total_gross_profit_loss_percent)}`;
       renderSidebar(summary, positions, watchlist);
       renderSidebarUs(usWatchlist);
 
@@ -3185,15 +3191,16 @@
             <td>${numberText(row.average_cost, 2)}</td>
             <td>${numberText(row.latest_close, 2)}<br><small>${quoteMeta(row)}</small></td>
             <td>${money(row.cost)}</td>
-            <td>${money(row.market_value)}</td>
+            <td>${money(row.gross_market_value)}</td>
             <td>${money(row.estimated_sell_fee)}</td>
             <td>${money(row.estimated_sell_tax)}</td>
+            <td class="${classFor(row.gross_profit_loss)}"><strong>${money(row.gross_profit_loss)}</strong></td>
             <td class="${classFor(row.profit_loss)}"><strong>${money(row.profit_loss)}</strong></td>
             <td class="${classFor(row.realized_profit_loss)}"><strong>${money(row.realized_profit_loss)}</strong></td>
-            <td class="${classFor(row.profit_loss_percent)}"><strong>${percent(row.profit_loss_percent)}</strong></td>
+            <td class="${classFor(row.gross_profit_loss_percent)}"><strong>${percent(row.gross_profit_loss_percent)}</strong></td>
           </tr>
         `).join("")
-        : `<tr><td colspan="12" class="empty">目前沒有持股資料</td></tr>`;
+        : `<tr><td colspan="13" class="empty">目前沒有持股資料</td></tr>`;
 
       document.getElementById("recordRows").innerHTML = records.length
         ? records.map((row) => `
