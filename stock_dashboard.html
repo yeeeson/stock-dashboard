@@ -1592,6 +1592,7 @@
       display: grid;
       grid-template-columns:
         minmax(142px, 1.2fr)
+        minmax(170px, 1.25fr)
         minmax(58px, .5fr)
         minmax(52px, .45fr)
         minmax(70px, .6fr)
@@ -1619,6 +1620,7 @@
       background: color-mix(in srgb, var(--accent) 5%, transparent);
     }
     .dynamic-target,
+    .dynamic-reason,
     .dynamic-catalyst {
       min-width: 0;
     }
@@ -1633,6 +1635,26 @@
       flex-wrap: wrap;
       align-items: center;
       gap: 5px;
+    }
+    .dynamic-reason-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    .dynamic-reason-pill {
+      display: inline-flex;
+      align-items: center;
+      max-width: 100%;
+      min-height: 22px;
+      border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--line));
+      border-radius: 999px;
+      padding: 2px 8px;
+      background: color-mix(in srgb, var(--accent) 8%, transparent);
+      color: var(--text);
+      font-size: 10px;
+      font-weight: 750;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
     }
     .held-badge,
     .catalyst-badge {
@@ -1885,6 +1907,7 @@
         padding: 15px 0;
       }
       .dynamic-target,
+      .dynamic-reason,
       .dynamic-catalyst {
         grid-column: 1 / -1;
       }
@@ -2219,6 +2242,7 @@
           <div class="dynamic-candidate-table" role="table" aria-label="動態試單候選">
             <div class="dynamic-candidate-head" role="row">
               <span>標的／狀態</span>
+              <span>入選原因</span>
               <span>最新價</span>
               <span>RSI14</span>
               <span>MA20 乖離</span>
@@ -2932,6 +2956,17 @@
       const tone = decision.tone || "entry";
       return `<span class="decision-chip ${escapeHtml(tone)}"><span class="decision-chip-icon">${decisionIcon(tone)}</span>${escapeHtml(decision.label || "可分批試單")}</span>`;
     }
+    function dynamicReasonHtml(row) {
+      const rawReasons = Array.isArray(row.reasons) ? row.reasons : [];
+      const reasons = rawReasons.map((reason) => String(reason || "").trim()).filter(Boolean);
+      const fallback = [];
+      if (row.decision?.hint) fallback.push(row.decision.hint);
+      if (Number.isFinite(Number(row.technical?.rsi14))) fallback.push(`RSI14 ${numberText(row.technical.rsi14, 1)}，位於試單區間`);
+      if (Number.isFinite(Number(row.technical?.ma20_bias))) fallback.push(`MA20 乖離 ${percent(row.technical.ma20_bias)}，未明顯追高`);
+      const items = (reasons.length ? reasons : fallback).slice(0, 3);
+      if (!items.length) return `<span class="muted">技術條件通過，基本面仍需另查。</span>`;
+      return `<div class="dynamic-reason-list">${items.map((reason) => `<span class="dynamic-reason-pill">${escapeHtml(reason)}</span>`).join("")}</div>`;
+    }
     function dynamicCatalystHtml(row) {
       const catalyst = row.catalyst || null;
       if (!catalyst) {
@@ -2963,6 +2998,7 @@
               ${row.held ? `<span class="held-badge">已持有</span>` : ""}
             </div>
           </div>
+          <div class="candidate-cell dynamic-reason" data-label="入選原因">${dynamicReasonHtml(row)}</div>
           <div class="candidate-cell" data-label="最新價">${numberText(row.latest_close, 2)}<br><small>${displayDate(row.latest_date)}</small></div>
           <div class="candidate-cell" data-label="RSI14">${numberText(row.technical?.rsi14, 1)}</div>
           <div class="candidate-cell" data-label="MA20 乖離">${percent(row.technical?.ma20_bias)}</div>
