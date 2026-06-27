@@ -2181,6 +2181,7 @@
       <div class="card"><div class="label">帳面損益</div><div class="value" id="profitLoss">0 元</div></div>
       <div class="card"><div class="label">估賣後損益</div><div class="value" id="netProfitLoss">0 元</div></div>
       <div class="card"><div class="label">已實現損益</div><div class="value" id="realizedProfitLoss">0 元</div></div>
+      <div class="card"><div class="label">已收現金股利</div><div class="value" id="cashDividend">0 元</div></div>
       <div class="card"><div class="label">帳面損益率</div><div class="value" id="profitPercent">0%</div></div>
     </div>
 
@@ -2254,6 +2255,26 @@
                 </tr>
               </thead>
               <tbody id="realizedRows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card dividend-card" id="dividendSection" data-page="tw">
+          <div class="label">股利 / 配股紀錄</div>
+          <div class="note">現金股利只作收入參考，不回補持股成本；配股會以零成本增加股數並攤低均價。</div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>日期</th>
+                  <th>代號</th>
+                  <th>名稱</th>
+                  <th>類型</th>
+                  <th>股數</th>
+                  <th>現金金額</th>
+                </tr>
+              </thead>
+              <tbody id="dividendRows"></tbody>
             </table>
           </div>
         </section>
@@ -2362,6 +2383,17 @@
           </div>
         </section>
 
+        <section class="card reconciliation-card">
+          <div class="label">券商成本對帳</div>
+          <div class="note">如果你在持股明細手動修正含費成本，這裡會顯示和系統推導值的差異。</div>
+          <div class="analysis-list" id="reconciliationRows"></div>
+        </section>
+
+        <section class="card data-quality-card">
+          <div class="label">資料品質檢查</div>
+          <div class="analysis-list" id="dataQualityRows"></div>
+        </section>
+
         <section class="card news-card" id="newsSection">
           <div class="label">持股最新新聞</div>
           <div class="news-list" id="newsRows"></div>
@@ -2406,6 +2438,7 @@
       <div class="card"><div class="label">美股帳面損益</div><div class="value" id="usProfitLoss">0 元</div></div>
       <div class="card"><div class="label">美股估賣後損益</div><div class="value" id="usNetProfitLoss">0 元</div></div>
       <div class="card"><div class="label">美股已實現</div><div class="value" id="usRealizedProfitLoss">0 元</div></div>
+      <div class="card"><div class="label">美股已收現金股利</div><div class="value" id="usCashDividend">0 元</div></div>
       <div class="card"><div class="label">USD / TWD</div><div class="value" id="usExchangeRate">無資料</div></div>
     </div>
 
@@ -2526,6 +2559,39 @@
           <tbody id="usRealizedRows"></tbody>
         </table>
       </div>
+    </section>
+
+    <section class="card dividend-card full-width-section" id="usDividendSection">
+      <div class="label">美股股利 / 配股紀錄</div>
+      <div class="note">美股現金股利目前只列作收入參考；股息稅暫不納入損益。</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>日期</th>
+              <th>代號</th>
+              <th>名稱</th>
+              <th>類型</th>
+              <th>股數</th>
+              <th>金額 USD</th>
+              <th>金額 TWD</th>
+              <th>匯率</th>
+            </tr>
+          </thead>
+          <tbody id="usDividendRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card reconciliation-card full-width-section" id="usReconciliationSection">
+      <div class="label">美股券商成本對帳</div>
+      <div class="note">顯示系統依交易紀錄推導的成本、手動覆蓋成本與差異。</div>
+      <div class="analysis-list" id="usReconciliationRows"></div>
+    </section>
+
+    <section class="card data-quality-card full-width-section" id="usDataQualitySection">
+      <div class="label">美股資料品質檢查</div>
+      <div class="analysis-list" id="usDataQualityRows"></div>
     </section>
 
     <section class="card market-trend-card full-width-section" id="usMarketTrendSection">
@@ -2944,6 +3010,53 @@
           <div class="analysis-quality-cell"><span>狀態</span><strong>${escapeHtml(row.status || "觀察")}</strong></div>
         </div>
       `;
+    }
+    function renderQualityChecks(checks) {
+      const rows = Array.isArray(checks) ? checks : [];
+      if (!rows.length) return `<div class="empty">目前沒有明顯資料品質問題</div>`;
+      return rows.map((row) => `
+        <div class="analysis-item">
+          <div class="analysis-item-head">
+            <div class="analysis-item-title">${escapeHtml(row.symbol ? `${row.symbol} · ${row.title}` : row.title)}</div>
+            <span class="level-pill ${escapeHtml(row.level || "info")}">${escapeHtml(row.level === "negative" ? "需處理" : row.level === "warning" ? "注意" : "參考")}</span>
+          </div>
+          <div class="analysis-item-text">${escapeHtml(row.detail || "")}</div>
+        </div>
+      `).join("");
+    }
+    function renderReconciliationRows(positions, market = "TW") {
+      const rows = (Array.isArray(positions) ? positions : [])
+        .filter((row) => row.cost_basis_source === "manual_override" || Math.abs(Number(row.cost_difference || 0)) >= 1);
+      if (!rows.length) return `<div class="empty">目前沒有手動成本覆蓋；系統成本和推導值一致。</div>`;
+      return rows.map((row) => {
+        const diff = Number(row.cost_difference || 0);
+        const originalDiff = Number(row.cost_difference_original || 0);
+        const systemCost = market === "US"
+          ? `${moneyUsd(row.derived_cost_original)} / ${money(row.derived_cost)}`
+          : money(row.derived_cost);
+        const overrideCost = market === "US"
+          ? `${moneyUsd(row.cost_original)} / ${money(row.cost)}`
+          : money(row.cost);
+        const diffText = market === "US"
+          ? `${moneyUsd(originalDiff)} / ${money(diff)}`
+          : money(diff);
+        return `
+          <div class="analysis-item">
+            <div class="analysis-item-head">
+              <div class="analysis-item-title">${escapeHtml(row.symbol)} · ${escapeHtml(row.display_name || "")}</div>
+              <span class="level-pill info">${row.cost_basis_source === "manual_override" ? "手動成本" : "推導成本"}</span>
+            </div>
+            <div class="analysis-checks">
+              <div class="analysis-check"><div class="analysis-check-label">系統推導</div><div class="analysis-check-status info">成本</div><div class="analysis-check-detail">${systemCost}</div></div>
+              <div class="analysis-check"><div class="analysis-check-label">目前採用</div><div class="analysis-check-status info">成本</div><div class="analysis-check-detail">${overrideCost}</div></div>
+              <div class="analysis-check"><div class="analysis-check-label">差異</div><div class="analysis-check-status ${classFor(diff)}">${diff >= 0 ? "較高" : "較低"}</div><div class="analysis-check-detail">${diffText}</div></div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+    function dividendTypeText(row) {
+      return row.dividend_type === "stock" ? "配股" : "現金股利";
     }
     function reasonText(reasons) {
       const parts = (Array.isArray(reasons) ? reasons : [reasons])
@@ -3453,6 +3566,10 @@
       const usRecords = payload.us_investment_records || [];
       const realizedLots = payload.realized_lots || [];
       const usRealizedLots = payload.us_realized_lots || [];
+      const dividendLots = payload.dividend_lots || [];
+      const usDividendLots = payload.us_dividend_lots || [];
+      const dataQualityChecks = payload.data_quality_checks || [];
+      const usDataQualityChecks = payload.us_data_quality_checks || [];
       const marketTrend = payload.market_trend || {};
       const news = payload.news || [];
       const usMarketNews = payload.us_market_news || [];
@@ -3471,6 +3588,7 @@
       document.getElementById("netProfitLoss").className = `value ${classFor(summary.total_profit_loss)}`;
       document.getElementById("realizedProfitLoss").textContent = money(summary.total_realized_profit_loss);
       document.getElementById("realizedProfitLoss").className = `value ${classFor(summary.total_realized_profit_loss)}`;
+      document.getElementById("cashDividend").textContent = money(summary.total_cash_dividend);
       document.getElementById("profitPercent").textContent = percent(summary.total_gross_profit_loss_percent);
       document.getElementById("profitPercent").className = `value ${classFor(summary.total_gross_profit_loss_percent)}`;
       document.getElementById("usMarketValue").textContent = money(usSummary.total_gross_market_value_twd ?? usSummary.total_market_value_twd);
@@ -3481,6 +3599,7 @@
       document.getElementById("usNetProfitLoss").className = `value ${classFor(usSummary.total_profit_loss_twd)}`;
       document.getElementById("usRealizedProfitLoss").textContent = money(usSummary.total_realized_profit_loss_twd);
       document.getElementById("usRealizedProfitLoss").className = `value ${classFor(usSummary.total_realized_profit_loss_twd)}`;
+      document.getElementById("usCashDividend").textContent = money(usSummary.total_cash_dividend_twd);
       document.getElementById("usExchangeRate").textContent = numberText(usSummary.usd_twd_rate, 4);
       renderSidebar(summary, positions, dynamicCandidates);
       renderSidebarUs(usWatchlist);
@@ -3537,6 +3656,21 @@
         `).join("")
         : `<tr><td colspan="10" class="empty">目前沒有已實現交易</td></tr>`;
 
+      document.getElementById("dividendRows").innerHTML = dividendLots.length
+        ? dividendLots.map((row) => `
+          <tr>
+            <td>${displayDate(row.record_date)}</td>
+            <td><strong>${escapeHtml(row.symbol)}</strong></td>
+            <td>${escapeHtml(row.display_name || "")}</td>
+            <td>${dividendTypeText(row)}</td>
+            <td>${row.dividend_type === "stock" ? numberText(row.shares, 5) : "-"}</td>
+            <td>${row.dividend_type === "cash" ? money(row.amount) : "-"}</td>
+          </tr>
+        `).join("")
+        : `<tr><td colspan="6" class="empty">目前沒有股利或配股紀錄</td></tr>`;
+      document.getElementById("reconciliationRows").innerHTML = renderReconciliationRows(positions, "TW");
+      document.getElementById("dataQualityRows").innerHTML = renderQualityChecks(dataQualityChecks);
+
       document.getElementById("recordRows").innerHTML = records.length
         ? records.map((row) => `
           <tr>
@@ -3588,6 +3722,23 @@
           </tr>
         `).join("")
         : `<tr><td colspan="11" class="empty">目前沒有美股已實現交易</td></tr>`;
+
+      document.getElementById("usDividendRows").innerHTML = usDividendLots.length
+        ? usDividendLots.map((row) => `
+          <tr>
+            <td>${displayDate(row.record_date)}</td>
+            <td><strong>${escapeHtml(row.symbol)}</strong></td>
+            <td>${escapeHtml(row.display_name || "")}</td>
+            <td>${dividendTypeText(row)}</td>
+            <td>${row.dividend_type === "stock" ? numberText(row.shares, 5) : "-"}</td>
+            <td>${row.dividend_type === "cash" ? moneyUsd(row.amount_original) : "-"}</td>
+            <td>${row.dividend_type === "cash" ? money(row.amount) : "-"}</td>
+            <td>${numberText(row.exchange_rate, 4)}</td>
+          </tr>
+        `).join("")
+        : `<tr><td colspan="8" class="empty">目前沒有美股股利或配股紀錄</td></tr>`;
+      document.getElementById("usReconciliationRows").innerHTML = renderReconciliationRows(usPositions, "US");
+      document.getElementById("usDataQualityRows").innerHTML = renderQualityChecks(usDataQualityChecks);
 
       document.getElementById("watchlistRows").innerHTML = watchlist.length
         ? watchlistTileRows(watchlist)
