@@ -252,7 +252,8 @@
     body[data-market-page="us"] .rail-nav a[data-page~="us"] {
       display: grid !important;
     }
-    body[data-market-page="tw"] .kpis[data-page~="tw"] {
+    body[data-market-page="tw"] .kpis[data-page~="tw"],
+    body[data-market-page="us"] .kpis[data-page~="us"] {
       display: grid !important;
     }
     body[data-market-page="tw"] .dashboard-layout[data-page~="tw"],
@@ -2097,6 +2098,11 @@
             <a href="#analysisSection" data-page="tw"><span class="nav-icon">◇</span><span>投資分析</span><span>Notes</span></a>
             <a href="#watchlistSection" data-page="tw"><span class="nav-icon">◎</span><span>觀察名單</span><span>Watch</span></a>
             <a href="#newsSection" data-page="tw"><span class="nav-icon">⌕</span><span>持股新聞</span><span>News</span></a>
+            <a href="#usTrendSection" data-page="us"><span class="nav-icon">⌁</span><span>美股趨勢</span><span>US Chart</span></a>
+            <a href="#usPositionsSection" data-page="us"><span class="nav-icon">▦</span><span>美股持股</span><span>US Holdings</span></a>
+            <a href="#usAnalysisSection" data-page="us"><span class="nav-icon">◇</span><span>美股分析</span><span>US Notes</span></a>
+            <a href="#usAllocationSection" data-page="us"><span class="nav-icon">◌</span><span>美股配置</span><span>US Mix</span></a>
+            <a href="#usRecordsSection" data-page="us"><span class="nav-icon">≣</span><span>美股紀錄</span><span>US Trades</span></a>
             <a href="#usWatchlistSection" data-page="us"><span class="nav-icon">◎</span><span>美股觀察</span><span>US Watch</span></a>
             <a href="#usNewsSection" data-page="us"><span class="nav-icon">⌕</span><span>美國事件</span><span>US News</span></a>
           </nav>
@@ -2132,7 +2138,7 @@
       <div class="card"><div class="label">帳面損益率</div><div class="value" id="profitPercent">0%</div></div>
     </div>
 
-    <div class="dashboard-layout" data-page="tw us">
+    <div class="dashboard-layout" data-page="tw">
       <div class="primary-column">
         <section class="card trend-card" id="trendSection" data-page="tw">
           <div class="chart-head">
@@ -2214,23 +2220,6 @@
               <span><i style="--ma-color:var(--ma-240)"></i>MA240</span>
             </div>
             <div class="compact-legend market-index-legend" id="taiwanMarketIndexLegend"></div>
-          </section>
-          <section class="card market-trend-card" data-page="us">
-            <div class="chart-head">
-              <div>
-                <div class="label">美股大盤趨勢</div>
-                <div class="note">每列使用真實點位；右側為最新收盤點位與近 20 個交易日漲跌幅。</div>
-              </div>
-            </div>
-            <canvas class="mini-chart" id="usMarketIndexChart"></canvas>
-            <div class="ma-legend" aria-label="大盤均線顏色">
-              <span><i style="--ma-color:var(--ma-5)"></i>MA5</span>
-              <span><i style="--ma-color:var(--ma-20)"></i>MA20</span>
-              <span><i style="--ma-color:var(--ma-60)"></i>MA60</span>
-              <span><i style="--ma-color:var(--ma-120)"></i>MA120</span>
-              <span><i style="--ma-color:var(--ma-240)"></i>MA240</span>
-            </div>
-            <div class="compact-legend market-index-legend" id="usMarketIndexLegend"></div>
           </section>
         </div>
 
@@ -2340,6 +2329,77 @@
     </div>
 
     <div class="us-page-stack" data-page="us">
+    <div class="kpis us-kpis" data-page="us">
+      <div class="card"><div class="label">美股總市值</div><div class="value" id="usMarketValue">0 元</div></div>
+      <div class="card"><div class="label">美股總成本</div><div class="value" id="usTotalCost">0 元</div></div>
+      <div class="card"><div class="label">美股帳面損益</div><div class="value" id="usProfitLoss">0 元</div></div>
+      <div class="card"><div class="label">美股估賣後損益</div><div class="value" id="usNetProfitLoss">0 元</div></div>
+      <div class="card"><div class="label">美股已實現</div><div class="value" id="usRealizedProfitLoss">0 元</div></div>
+      <div class="card"><div class="label">USD / TWD</div><div class="value" id="usExchangeRate">無資料</div></div>
+    </div>
+
+    <section class="card trend-card full-width-section" id="usTrendSection">
+      <div class="chart-head">
+        <div>
+          <div class="label">美股資產趨勢線</div>
+          <div class="note">依持有美股的 Yahoo 日線與目前 USD/TWD 匯率換算 TWD 估計淨值。</div>
+        </div>
+      </div>
+      <div class="split">
+        <canvas class="chart" id="usTrendChart"></canvas>
+        <div>
+          <div class="legend" id="usLegend"></div>
+          <div class="alert-box" id="usWarning" hidden></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card analysis-card full-width-section" id="usAnalysisSection">
+      <div class="label">美股投資分析參考</div>
+      <div class="analysis-list" id="usAnalysisRows"></div>
+      <div class="note">美股分析使用 Yahoo 日 K、均線、RSI、波動與持有部位資料，不含股息與股息稅。</div>
+    </section>
+
+    <section class="card allocation-card full-width-section" id="usAllocationSection">
+      <div class="chart-head">
+        <div>
+          <div class="label">美股持股配置</div>
+          <div class="note">依估計賣出後 TWD 淨值計算，檢查美股部位集中度。</div>
+        </div>
+      </div>
+      <div class="allocation-summary" id="usAllocationSummary"></div>
+      <div class="allocation-layout">
+        <canvas class="mini-chart" id="usAllocationChart"></canvas>
+        <div>
+          <div class="compact-legend allocation-legend" id="usAllocationLegend"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card records-card full-width-section" id="usRecordsSection">
+      <div class="label">近期美股投資紀錄</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>日期</th>
+              <th>代號</th>
+              <th>名稱</th>
+              <th>動作</th>
+              <th>成交金額 USD</th>
+              <th>手續費 USD</th>
+              <th>稅費 USD</th>
+              <th>TWD 淨額</th>
+              <th>股數</th>
+              <th>均價 USD</th>
+              <th>匯率</th>
+            </tr>
+          </thead>
+          <tbody id="usRecordRows"></tbody>
+        </table>
+      </div>
+    </section>
+
     <section class="card positions-card full-width-section" id="usPositionsSection">
       <div class="chart-head">
         <div>
@@ -2369,6 +2429,24 @@
           <tbody id="usPositionRows"></tbody>
         </table>
       </div>
+    </section>
+
+    <section class="card market-trend-card full-width-section" id="usMarketTrendSection">
+      <div class="chart-head">
+        <div>
+          <div class="label">美股大盤趨勢</div>
+          <div class="note">每列使用真實點位；右側為最新收盤點位與近 20 個交易日漲跌幅。</div>
+        </div>
+      </div>
+      <canvas class="mini-chart" id="usMarketIndexChart"></canvas>
+      <div class="ma-legend" aria-label="大盤均線顏色">
+        <span><i style="--ma-color:var(--ma-5)"></i>MA5</span>
+        <span><i style="--ma-color:var(--ma-20)"></i>MA20</span>
+        <span><i style="--ma-color:var(--ma-60)"></i>MA60</span>
+        <span><i style="--ma-color:var(--ma-120)"></i>MA120</span>
+        <span><i style="--ma-color:var(--ma-240)"></i>MA240</span>
+      </div>
+      <div class="compact-legend market-index-legend" id="usMarketIndexLegend"></div>
     </section>
 
     <section class="card us-watchlist-card full-width-section" id="usWatchlistSection">
@@ -2445,6 +2523,7 @@
     const trendHoverState = {
       trendChart: null,
       expandedTrendChart: null,
+      usTrendChart: null,
     };
     const marketHoverState = {
       taiwanMarketIndexChart: null,
@@ -2478,6 +2557,9 @@
         drawTrend(latestPayload);
         renderAllocation(latestPayload.positions || []);
         drawAllocation(latestPayload.positions || []);
+        renderUsLegend(latestPayload.us_positions || []);
+        drawUsTrend(latestPayload);
+        renderUsAllocation(latestPayload.us_positions || []);
         renderMarketTrends(latestPayload.market_trend || {});
         drawMarketTrends(latestPayload.market_trend || {});
         if (!document.getElementById("trendModal").hidden) drawTrend(latestPayload, "expandedTrendChart");
@@ -2501,6 +2583,8 @@
         window.requestAnimationFrame(() => {
           drawTrend(latestPayload);
           drawAllocation(latestPayload.positions || []);
+          drawUsTrend(latestPayload);
+          drawAllocation(latestPayload.us_positions || [], "usAllocationChart");
           drawMarketTrends(latestPayload.market_trend || {});
           if (!document.getElementById("trendModal").hidden) drawTrend(latestPayload, "expandedTrendChart");
         });
@@ -2801,6 +2885,8 @@
         window.requestAnimationFrame(() => {
           drawTrend(latestPayload);
           drawAllocation(latestPayload.positions || []);
+          drawUsTrend(latestPayload);
+          drawAllocation(latestPayload.us_positions || [], "usAllocationChart");
           drawMarketTrends(latestPayload.market_trend || {});
         });
       }
@@ -3189,6 +3275,8 @@
       const usWatchlist = payload.us_watchlist || [];
       const usPositions = payload.us_positions || [];
       const usSummary = payload.us_summary || {};
+      const usAnalysis = payload.us_analysis || [];
+      const usRecords = payload.us_investment_records || [];
       const marketTrend = payload.market_trend || {};
       const news = payload.news || [];
       const usMarketNews = payload.us_market_news || [];
@@ -3205,6 +3293,15 @@
       document.getElementById("realizedProfitLoss").className = `value ${classFor(summary.total_realized_profit_loss)}`;
       document.getElementById("profitPercent").textContent = percent(summary.total_gross_profit_loss_percent);
       document.getElementById("profitPercent").className = `value ${classFor(summary.total_gross_profit_loss_percent)}`;
+      document.getElementById("usMarketValue").textContent = money(usSummary.total_gross_market_value_twd ?? usSummary.total_market_value_twd);
+      document.getElementById("usTotalCost").textContent = money(usSummary.total_cost_twd);
+      document.getElementById("usProfitLoss").textContent = money(usSummary.total_gross_profit_loss_twd);
+      document.getElementById("usProfitLoss").className = `value ${classFor(usSummary.total_gross_profit_loss_twd)}`;
+      document.getElementById("usNetProfitLoss").textContent = money(usSummary.total_profit_loss_twd);
+      document.getElementById("usNetProfitLoss").className = `value ${classFor(usSummary.total_profit_loss_twd)}`;
+      document.getElementById("usRealizedProfitLoss").textContent = money(usSummary.total_realized_profit_loss_twd);
+      document.getElementById("usRealizedProfitLoss").className = `value ${classFor(usSummary.total_realized_profit_loss_twd)}`;
+      document.getElementById("usExchangeRate").textContent = numberText(usSummary.usd_twd_rate, 4);
       renderSidebar(summary, positions, watchlist);
       renderSidebarUs(usWatchlist);
 
@@ -3216,6 +3313,9 @@
       document.getElementById("analysisRows").innerHTML = analysis.length
         ? analysis.map((row) => renderAnalysisItem(row)).join("")
         : `<div class="empty">目前沒有足夠資料產生投資分析</div>`;
+      document.getElementById("usAnalysisRows").innerHTML = usAnalysis.length
+        ? usAnalysis.map((row) => renderAnalysisItem(row)).join("")
+        : `<div class="empty">目前沒有足夠美股資料產生投資分析</div>`;
       document.getElementById("positionCards").innerHTML = positions.length
         ? renderPositionCards(positions, summary)
         : `<div class="empty">目前沒有持股資料</div>`;
@@ -3255,6 +3355,23 @@
           </tr>
         `).join("")
         : `<tr><td colspan="10" class="empty">這個區間沒有投資紀錄</td></tr>`;
+      document.getElementById("usRecordRows").innerHTML = usRecords.length
+        ? usRecords.map((row) => `
+          <tr>
+            <td>${displayDate(row.record_date)}</td>
+            <td>${escapeHtml(row.asset)}</td>
+            <td>${escapeHtml(row.display_name || "")}</td>
+            <td>${escapeHtml(row.action)}</td>
+            <td>${moneyUsd(row.gross_amount_original ?? row.amount_original ?? row.gross_amount)}</td>
+            <td>${moneyUsd(row.fee_original)}</td>
+            <td>${moneyUsd(row.tax_original)}</td>
+            <td class="${tradeClass(row)}"><strong>${money(row.net_amount ?? row.cost ?? row.amount)}</strong></td>
+            <td>${numberText(row.quantity, 4)}</td>
+            <td>${moneyUsd(row.average_price ?? row.price)}</td>
+            <td>${numberText(row.exchange_rate, 4)}</td>
+          </tr>
+        `).join("")
+        : `<tr><td colspan="11" class="empty">這個區間沒有美股投資紀錄</td></tr>`;
 
       document.getElementById("watchlistRows").innerHTML = watchlist.length
         ? watchlistTileRows(watchlist)
@@ -3298,6 +3415,7 @@
       renderUsWatchlist(usWatchlist);
       renderAllocation(positions);
       drawAllocation(positions);
+      renderUsAllocation(usPositions);
       renderMarketTrends(marketTrend);
       drawMarketTrends(marketTrend);
 
@@ -3332,6 +3450,8 @@
 
       renderLegend(positions);
       drawTrend(payload);
+      renderUsLegend(usPositions);
+      drawUsTrend(payload);
     }
     function watchlistTableRows(items) {
       return items.map((row) => `
@@ -3488,9 +3608,9 @@
         percent: total > 0 ? (row.value / total) * 100 : 0,
       }));
     }
-    function renderAllocationSummary(positions) {
+    function renderAllocationSummary(positions, targetId = "allocationSummary") {
       const rows = allocationRows(positions).sort((a, b) => b.value - a.value);
-      const target = document.getElementById("allocationSummary");
+      const target = document.getElementById(targetId);
       if (!rows.length) {
         target.innerHTML = `<div class="empty">目前沒有可用估計淨值資料</div>`;
         return;
@@ -3512,10 +3632,10 @@
         </div>
       `;
     }
-    function renderAllocation(positions) {
+    function renderAllocation(positions, summaryTargetId = "allocationSummary", legendTargetId = "allocationLegend") {
       const rows = allocationRows(positions);
-      renderAllocationSummary(positions);
-      document.getElementById("allocationLegend").innerHTML = rows.length
+      renderAllocationSummary(positions, summaryTargetId);
+      document.getElementById(legendTargetId).innerHTML = rows.length
         ? rows.map((row) => `
           <div class="allocation-row">
             <span class="compact-legend-dot" style="background:${escapeHtml(row.color)}"></span>
@@ -3531,8 +3651,8 @@
         `).join("")
         : `<div class="empty">目前沒有可用估計淨值資料</div>`;
     }
-    function drawAllocation(positions) {
-      const canvas = document.getElementById("allocationChart");
+    function drawAllocation(positions, canvasId = "allocationChart") {
+      const canvas = document.getElementById(canvasId);
       const { ctx, width, height } = resizeCanvas(canvas);
       ctx.clearRect(0, 0, width, height);
       const rows = allocationRows(positions);
@@ -3771,6 +3891,10 @@
       ctx.fillText(displayDate(dates.at(-1)), width - layout.pad.right, height - 8);
       ctx.textAlign = "start";
     }
+    function renderUsAllocation(usPositions) {
+      renderAllocation(usPositions, "usAllocationSummary", "usAllocationLegend");
+      drawAllocation(usPositions, "usAllocationChart");
+    }
     function findMarketPoint(marketTrend, canvasId, clientX, clientY) {
       const canvas = document.getElementById(canvasId);
       const rect = canvas.getBoundingClientRect();
@@ -3826,6 +3950,9 @@
       const html = legendHtml(positions);
       document.getElementById("legend").innerHTML = html;
       document.getElementById("expandedLegend").innerHTML = html;
+    }
+    function renderUsLegend(positions) {
+      document.getElementById("usLegend").innerHTML = legendHtml(positions);
     }
     function drawMarkerTooltip(ctx, markerPoint, width, height, pad) {
       const label = `均價 ${numberText(markerPoint.price, 2)}`;
@@ -4045,6 +4172,16 @@
       ctx.textAlign = "right";
       ctx.fillText(displayDate(dates[dates.length - 1]), width - pad.right, height - 22);
     }
+    function usTrendPayload(payload) {
+      return {
+        ...payload,
+        positions: payload.us_positions || [],
+        trend: payload.us_trend || {},
+      };
+    }
+    function drawUsTrend(payload, canvasId = "usTrendChart") {
+      drawTrend(usTrendPayload(payload), canvasId);
+    }
 
     function findTrendMarker(payload, canvasId, clientX, clientY) {
       const canvas = document.getElementById(canvasId);
@@ -4098,6 +4235,16 @@
       document.getElementById(canvasId).style.cursor = hit ? "crosshair" : "default";
       drawTrend(latestPayload, canvasId);
     }
+    function updateUsTrendHover(canvasId, event) {
+      if (!latestPayload) return;
+      const trendPayload = usTrendPayload(latestPayload);
+      const hit = findTrendMarker(trendPayload, canvasId, event.clientX, event.clientY);
+      const current = trendHoverState[canvasId];
+      if ((current?.seriesIndex ?? null) === (hit?.seriesIndex ?? null) && (current?.dateIndex ?? null) === (hit?.dateIndex ?? null)) return;
+      trendHoverState[canvasId] = hit;
+      document.getElementById(canvasId).style.cursor = hit ? "crosshair" : "default";
+      drawUsTrend(latestPayload, canvasId);
+    }
 
     function openTrendModal() {
       const modal = document.getElementById("trendModal");
@@ -4144,6 +4291,23 @@
         if (touch) updateTrendHover(canvasId, touch);
       }, { passive: true });
     }
+    {
+      const canvas = document.getElementById("usTrendChart");
+      canvas.addEventListener("mousemove", (event) => updateUsTrendHover("usTrendChart", event));
+      canvas.addEventListener("mouseleave", () => {
+        trendHoverState.usTrendChart = null;
+        canvas.style.cursor = "default";
+        if (latestPayload) drawUsTrend(latestPayload);
+      });
+      canvas.addEventListener("touchstart", (event) => {
+        const touch = event.touches[0];
+        if (touch) updateUsTrendHover("usTrendChart", touch);
+      }, { passive: true });
+      canvas.addEventListener("touchmove", (event) => {
+        const touch = event.touches[0];
+        if (touch) updateUsTrendHover("usTrendChart", touch);
+      }, { passive: true });
+    }
     for (const config of [
       { canvasId: "taiwanMarketIndexChart", group: "tw", colorOffset: 0 },
       { canvasId: "usMarketIndexChart", group: "us", colorOffset: 1 },
@@ -4174,6 +4338,8 @@
       if (latestPayload) {
         drawTrend(latestPayload);
         drawAllocation(latestPayload.positions || []);
+        drawUsTrend(latestPayload);
+        drawAllocation(latestPayload.us_positions || [], "usAllocationChart");
         drawMarketTrends(latestPayload.market_trend || {});
         if (!document.getElementById("trendModal").hidden) drawTrend(latestPayload, "expandedTrendChart");
       }
