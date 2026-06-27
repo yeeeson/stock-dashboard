@@ -2160,7 +2160,7 @@
           </div>
         </div>
         <div class="rail-section" data-page="tw">
-          <div class="rail-title">關注名單</div>
+          <div class="rail-title">今日可分批試單候選</div>
           <div id="sidebarWatchlist">
             <div class="rail-meta">等待資料載入</div>
           </div>
@@ -2463,7 +2463,7 @@
               <th>TWD 淨額</th>
               <th>股數</th>
               <th>均價 USD</th>
-              <th>匯率</th>
+              <th>成本匯率</th>
             </tr>
           </thead>
           <tbody id="usRecordRows"></tbody>
@@ -2712,9 +2712,9 @@
       if (value === null || value === undefined) return "無資料";
       return `${Number(value || 0).toLocaleString()} 元`;
     }
-    function moneyUsd(value) {
+    function moneyUsd(value, digits = 2) {
       if (value === null || value === undefined) return "無資料";
-      return `USD ${Number(value || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+      return `USD ${Number(value || 0).toLocaleString(undefined, { maximumFractionDigits: digits })}`;
     }
     function numberText(value, digits = 2) {
       if (value === null || value === undefined) return "無資料";
@@ -3248,7 +3248,7 @@
         </div>
       `;
     }
-    function renderSidebar(summary, positions, watchlist) {
+    function renderSidebar(summary, positions, dynamicCandidates) {
       const status = document.getElementById("sidebarStatus");
       const quoteText = `${summary.realtime_quote_count || 0}/${summary.quote_count || 0}`;
       status.innerHTML = [
@@ -3265,13 +3265,13 @@
         )).join("")
         : `<div class="rail-meta">目前沒有持股資料</div>`;
 
-      document.getElementById("sidebarWatchlist").innerHTML = watchlist.length
-        ? watchlist.slice(0, 8).map((row) => railItem(
+      document.getElementById("sidebarWatchlist").innerHTML = dynamicCandidates.length
+        ? dynamicCandidates.slice(0, 8).map((row) => railItem(
           row.display_name || row.symbol,
-          `${percent(row.technical?.return20)}`,
+          `${watchDecision(row).label} · ${percent(row.technical?.return20)}`,
           classFor(row.technical?.return20),
         )).join("")
-        : `<div class="rail-meta">目前沒有觀察資料</div>`;
+        : `<div class="rail-meta">目前沒有符合條件的試單候選</div>`;
     }
     function renderSidebarUs(usWatchlist) {
       document.getElementById("sidebarUsWatchlist").innerHTML = usWatchlist.length
@@ -3399,7 +3399,7 @@
         }
         exchangeRate = parsePromptNumber(prompt(
           `${row.symbol} 匯率可選填；若留空，後端會使用目前或既有匯率推估。`,
-          row.current_exchange_rate ?? "",
+          row.cost_exchange_rate ?? "",
         ));
         if (Number.isNaN(exchangeRate) || (exchangeRate !== null && exchangeRate <= 0)) {
           alert("匯率必須是大於 0 的數字，或留空。");
@@ -3482,7 +3482,7 @@
       document.getElementById("usRealizedProfitLoss").textContent = money(usSummary.total_realized_profit_loss_twd);
       document.getElementById("usRealizedProfitLoss").className = `value ${classFor(usSummary.total_realized_profit_loss_twd)}`;
       document.getElementById("usExchangeRate").textContent = numberText(usSummary.usd_twd_rate, 4);
-      renderSidebar(summary, positions, watchlist);
+      renderSidebar(summary, positions, dynamicCandidates);
       renderSidebarUs(usWatchlist);
 
       const warning = document.getElementById("warning");
@@ -3741,24 +3741,24 @@
           `持有 ${numberText(summary?.quote_count || items.length, 0)} 檔`,
           `美股估賣後淨值 ${money(summary?.total_market_value_twd)}`,
         ];
-        meta.textContent = `${parts.join(" · ")}。成本與現值同時顯示 USD / TWD；TWD 依交易匯率與目前 USD/TWD 估算，不含股息。`;
+        meta.textContent = `${parts.join(" · ")}。成本匯率使用交易紀錄輸入值；現值 TWD 依目前 USD/TWD 估算，不含股息。`;
       }
       document.getElementById("usPositionRows").innerHTML = items.length
         ? items.map((row) => `
           <tr>
             <td><strong>${escapeHtml(row.symbol)}</strong></td>
             <td>${usStockNameLink(row)}</td>
-            <td>${numberText(row.shares, 4)}</td>
-            <td>${moneyUsd(row.average_cost_original ?? row.average_cost)}</td>
-            <td>${moneyUsd(row.latest_close)}<br><small>${usQuoteMeta(row)}</small></td>
+            <td>${numberText(row.shares, 5)}</td>
+            <td>${moneyUsd(row.average_cost_original ?? row.average_cost, 6)}</td>
+            <td>${moneyUsd(row.latest_close, 4)}<br><small>${usQuoteMeta(row)}</small></td>
             <td>${moneyUsd(row.cost_original)}</td>
             <td>${money(row.cost)}${row.cost_override ? `<br><small>手動修正</small>` : ""}</td>
             <td>${moneyUsd(row.gross_market_value_original)}</td>
-            <td>${money(row.gross_market_value)}</td>
+            <td>${money(row.gross_market_value)}<br><small>估值匯率 ${numberText(row.valuation_exchange_rate, 4)}</small></td>
             <td class="${classFor(row.gross_profit_loss_original)}"><strong>${moneyUsd(row.gross_profit_loss_original)}</strong></td>
             <td class="${classFor(row.gross_profit_loss)}"><strong>${money(row.gross_profit_loss)}</strong></td>
             <td class="${classFor(row.profit_loss)}"><strong>${money(row.market_value)}</strong></td>
-            <td>${numberText(row.current_exchange_rate, 4)}</td>
+            <td>${numberText(row.cost_exchange_rate, 4)}</td>
             <td><button class="secondary-button cost-edit-button" type="button" data-cost-edit="${escapeHtml(positionEditKey(row.market, row.symbol))}">編輯</button></td>
           </tr>
         `).join("")
