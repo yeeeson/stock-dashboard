@@ -2226,9 +2226,34 @@
                   <th>估賣後損益</th>
                   <th>已實現</th>
                   <th>帳面損益率</th>
+                  <th>操作</th>
                 </tr>
               </thead>
               <tbody id="positionRows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card realized-card" id="realizedSection" data-page="tw">
+          <div class="label">已實現清單</div>
+          <div class="note">列出已賣出的交易結果，賣出金額已扣除國泰網路下單手續費與證交稅。</div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>日期</th>
+                  <th>代號</th>
+                  <th>名稱</th>
+                  <th>股數</th>
+                  <th>對應成本</th>
+                  <th>賣出毛額</th>
+                  <th>手續費</th>
+                  <th>證交稅</th>
+                  <th>賣出淨額</th>
+                  <th>已實現損益</th>
+                </tr>
+              </thead>
+              <tbody id="realizedRows"></tbody>
             </table>
           </div>
         </section>
@@ -2470,9 +2495,35 @@
               <th>TWD 損益</th>
               <th>估賣後 TWD</th>
               <th>匯率</th>
+              <th>操作</th>
             </tr>
           </thead>
           <tbody id="usPositionRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card realized-card full-width-section" id="usRealizedSection">
+      <div class="label">美股已實現清單</div>
+      <div class="note">列出已賣出的美股交易結果，賣出金額已扣除國泰網路下單手續費與交易徵費，TWD 以交易匯率換算。</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>日期</th>
+              <th>代號</th>
+              <th>名稱</th>
+              <th>股數</th>
+              <th>成本 USD</th>
+              <th>成本 TWD</th>
+              <th>賣出淨額 USD</th>
+              <th>賣出淨額 TWD</th>
+              <th>費稅 USD</th>
+              <th>已實現 USD</th>
+              <th>已實現 TWD</th>
+            </tr>
+          </thead>
+          <tbody id="usRealizedRows"></tbody>
         </table>
       </div>
     </section>
@@ -2565,6 +2616,7 @@
       { key: "ma240", label: "MA240", color: "--ma-240" },
     ];
     let latestPayload = null;
+    let positionEditMap = new Map();
     let activeMarketPage = params.get("market") === "us" ? "us" : "tw";
     const trendHoverState = {
       trendChart: null,
@@ -3235,6 +3287,10 @@
       if (forceRefresh) query.set("refresh", "1");
       return `https://${project}.supabase.co/functions/v1/stock-dashboard?${query}`;
     }
+    function costOverrideApiUrl() {
+      const query = new URLSearchParams({ user, token });
+      return `https://${project}.supabase.co/functions/v1/stock-dashboard/cost-override?${query}`;
+    }
     function setError(message) {
       const el = document.getElementById("error");
       el.hidden = !message;
@@ -3304,6 +3360,78 @@
         setLoading(false);
       }
     }
+    function positionEditKey(market, symbol) {
+      return `${String(market || "TW").toUpperCase()}:${String(symbol || "").toUpperCase()}`;
+    }
+    function parsePromptNumber(value) {
+      if (value === null) return null;
+      const normalized = String(value).replace(/,/g, "").trim();
+      if (!normalized) return null;
+      const numberValue = Number(normalized);
+      return Number.isFinite(numberValue) ? numberValue : NaN;
+    }
+    async function editCostOverride(market, symbol) {
+      const row = positionEditMap.get(positionEditKey(market, symbol));
+      if (!row) {
+        alert("找不到目前持股資料，請先刷新後再試。");
+        return;
+      }
+      const costTwd = parsePromptNumber(prompt(
+        `${row.symbol} ${row.display_name || ""}\n請輸入新的台幣含費總成本。`,
+        row.cost ?? "",
+      ));
+      if (costTwd === null) return;
+      if (!Number.isFinite(costTwd) || costTwd < 0) {
+        alert("台幣含費總成本必須是 0 以上的數字。");
+        return;
+      }
+      let costOriginal = null;
+      let exchangeRate = null;
+      const normalizedMarket = String(row.market || market || "TW").toUpperCase();
+      if (normalizedMarket === "US") {
+        costOriginal = parsePromptNumber(prompt(
+          `${row.symbol} USD 成本可選填；若留空，後端會用台幣成本與匯率推估。`,
+          row.cost_original ?? "",
+        ));
+        if (Number.isNaN(costOriginal) || (costOriginal !== null && costOriginal < 0)) {
+          alert("USD 成本必須是 0 以上的數字，或留空。");
+          return;
+        }
+        exchangeRate = parsePromptNumber(prompt(
+          `${row.symbol} 匯率可選填；若留空，後端會使用目前或既有匯率推估。`,
+          row.current_exchange_rate ?? "",
+        ));
+        if (Number.isNaN(exchangeRate) || (exchangeRate !== null && exchangeRate <= 0)) {
+          alert("匯率必須是大於 0 的數字，或留空。");
+          return;
+        }
+      }
+      try {
+        setLoading(true);
+        const response = await fetch(costOverrideApiUrl(), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            symbol: row.symbol,
+            market: normalizedMarket,
+            currency: normalizedMarket === "US" ? "USD" : "TWD",
+            cost_twd: costTwd,
+            cost_original: costOriginal,
+            exchange_rate: exchangeRate,
+            note: "Manual dashboard cost override",
+          }),
+        });
+        const text = await response.text();
+        if (!response.ok) {
+          throw new Error(text || "成本覆蓋寫入失敗。");
+        }
+        await loadDashboard(true);
+      } catch (error) {
+        setError(error instanceof Error ? error.message : String(error));
+      } finally {
+        setLoading(false);
+      }
+    }
     function render(payload) {
       trendHoverState.trendChart = null;
       trendHoverState.expandedTrendChart = null;
@@ -3323,9 +3451,15 @@
       const usSummary = payload.us_summary || {};
       const usAnalysis = payload.us_analysis || [];
       const usRecords = payload.us_investment_records || [];
+      const realizedLots = payload.realized_lots || [];
+      const usRealizedLots = payload.us_realized_lots || [];
       const marketTrend = payload.market_trend || {};
       const news = payload.news || [];
       const usMarketNews = payload.us_market_news || [];
+      positionEditMap = new Map([...positions, ...usPositions].map((row) => [
+        positionEditKey(row.market, row.symbol),
+        row,
+      ]));
       const generatedAt = payload.generated_at ? new Date(payload.generated_at).toLocaleString() : "無資料";
       document.getElementById("subtitle").textContent = `最新報價日 ${displayDate(summary.latest_quote_date)}，即時報價 ${summary.realtime_quote_count || 0}/${summary.quote_count || 0} 檔，更新時間 ${generatedAt}`;
       renderMarketSession();
@@ -3373,7 +3507,7 @@
             <td>${numberText(row.shares, 3)}</td>
             <td>${numberText(row.average_cost, 2)}</td>
             <td>${numberText(row.latest_close, 2)}<br><small>${quoteMeta(row)}</small></td>
-            <td>${money(row.cost)}</td>
+            <td>${money(row.cost)}${row.cost_override ? `<br><small>手動修正</small>` : ""}</td>
             <td>${money(row.gross_market_value)}</td>
             <td>${money(row.estimated_sell_fee)}</td>
             <td>${money(row.estimated_sell_tax)}</td>
@@ -3381,9 +3515,27 @@
             <td class="${classFor(row.profit_loss)}"><strong>${money(row.profit_loss)}</strong></td>
             <td class="${classFor(row.realized_profit_loss)}"><strong>${money(row.realized_profit_loss)}</strong></td>
             <td class="${classFor(row.gross_profit_loss_percent)}"><strong>${percent(row.gross_profit_loss_percent)}</strong></td>
+            <td><button class="secondary-button cost-edit-button" type="button" data-cost-edit="${escapeHtml(positionEditKey(row.market, row.symbol))}">編輯</button></td>
           </tr>
         `).join("")
-        : `<tr><td colspan="13" class="empty">目前沒有持股資料</td></tr>`;
+        : `<tr><td colspan="14" class="empty">目前沒有持股資料</td></tr>`;
+
+      document.getElementById("realizedRows").innerHTML = realizedLots.length
+        ? realizedLots.map((row) => `
+          <tr>
+            <td>${displayDate(row.record_date)}</td>
+            <td><strong>${escapeHtml(row.symbol)}</strong></td>
+            <td>${escapeHtml(row.display_name || "")}</td>
+            <td>${numberText(row.sold_shares, 3)}</td>
+            <td>${money(row.sold_cost)}</td>
+            <td>${money(row.gross_amount)}</td>
+            <td>${money(row.sell_fee)}</td>
+            <td>${money(row.sell_tax)}</td>
+            <td>${money(row.net_amount)}</td>
+            <td class="${classFor(row.profit_loss)}"><strong>${money(row.profit_loss)}</strong></td>
+          </tr>
+        `).join("")
+        : `<tr><td colspan="10" class="empty">目前沒有已實現交易</td></tr>`;
 
       document.getElementById("recordRows").innerHTML = records.length
         ? records.map((row) => `
@@ -3418,6 +3570,24 @@
           </tr>
         `).join("")
         : `<tr><td colspan="11" class="empty">這個區間沒有美股投資紀錄</td></tr>`;
+
+      document.getElementById("usRealizedRows").innerHTML = usRealizedLots.length
+        ? usRealizedLots.map((row) => `
+          <tr>
+            <td>${displayDate(row.record_date)}</td>
+            <td><strong>${escapeHtml(row.symbol)}</strong></td>
+            <td>${escapeHtml(row.display_name || "")}</td>
+            <td>${numberText(row.sold_shares, 4)}</td>
+            <td>${moneyUsd(row.sold_cost_original)}</td>
+            <td>${money(row.sold_cost)}</td>
+            <td>${moneyUsd(row.net_amount_original)}</td>
+            <td>${money(row.net_amount)}</td>
+            <td>${moneyUsd((row.sell_fee_original || 0) + (row.sell_tax_original || 0))}</td>
+            <td class="${classFor(row.profit_loss_original)}"><strong>${moneyUsd(row.profit_loss_original)}</strong></td>
+            <td class="${classFor(row.profit_loss)}"><strong>${money(row.profit_loss)}</strong></td>
+          </tr>
+        `).join("")
+        : `<tr><td colspan="11" class="empty">目前沒有美股已實現交易</td></tr>`;
 
       document.getElementById("watchlistRows").innerHTML = watchlist.length
         ? watchlistTileRows(watchlist)
@@ -3582,16 +3752,17 @@
             <td>${moneyUsd(row.average_cost_original ?? row.average_cost)}</td>
             <td>${moneyUsd(row.latest_close)}<br><small>${usQuoteMeta(row)}</small></td>
             <td>${moneyUsd(row.cost_original)}</td>
-            <td>${money(row.cost)}</td>
+            <td>${money(row.cost)}${row.cost_override ? `<br><small>手動修正</small>` : ""}</td>
             <td>${moneyUsd(row.gross_market_value_original)}</td>
             <td>${money(row.gross_market_value)}</td>
             <td class="${classFor(row.gross_profit_loss_original)}"><strong>${moneyUsd(row.gross_profit_loss_original)}</strong></td>
             <td class="${classFor(row.gross_profit_loss)}"><strong>${money(row.gross_profit_loss)}</strong></td>
             <td class="${classFor(row.profit_loss)}"><strong>${money(row.market_value)}</strong></td>
             <td>${numberText(row.current_exchange_rate, 4)}</td>
+            <td><button class="secondary-button cost-edit-button" type="button" data-cost-edit="${escapeHtml(positionEditKey(row.market, row.symbol))}">編輯</button></td>
           </tr>
         `).join("")
-        : `<tr><td colspan="13" class="empty">目前沒有持有美股資料</td></tr>`;
+        : `<tr><td colspan="14" class="empty">目前沒有持有美股資料</td></tr>`;
     }
     function renderUsWatchlist(items) {
       document.getElementById("usWatchlistRows").innerHTML = items.length
@@ -4309,6 +4480,13 @@
 
     document.getElementById("refreshButton").addEventListener("click", () => loadDashboard(true));
     document.getElementById("rangeSelect").addEventListener("change", () => loadDashboard(false));
+    document.addEventListener("click", (event) => {
+      if (!(event.target instanceof Element)) return;
+      const button = event.target.closest("[data-cost-edit]");
+      if (!button) return;
+      const [market, symbol] = String(button.dataset.costEdit || "").split(":");
+      editCostOverride(market, symbol);
+    });
     document.getElementById("themeButton").addEventListener("click", () => {
       applyTheme(document.body.classList.contains("light") ? "dark" : "light");
     });
