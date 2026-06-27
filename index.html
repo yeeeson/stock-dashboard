@@ -2340,6 +2340,37 @@
     </div>
 
     <div class="us-page-stack" data-page="us">
+    <section class="card positions-card full-width-section" id="usPositionsSection">
+      <div class="chart-head">
+        <div>
+          <div class="label">持有美股</div>
+          <div class="note" id="usPositionsMeta">成本與現值同時顯示 USD / TWD；TWD 依交易匯率與目前 USD/TWD 估算，不含股息。</div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>代號</th>
+              <th>名稱</th>
+              <th>股數</th>
+              <th>均價 USD</th>
+              <th>最新價 USD</th>
+              <th>成本 USD</th>
+              <th>成本 TWD</th>
+              <th>現值 USD</th>
+              <th>現值 TWD</th>
+              <th>USD 損益</th>
+              <th>TWD 損益</th>
+              <th>估賣後 TWD</th>
+              <th>匯率</th>
+            </tr>
+          </thead>
+          <tbody id="usPositionRows"></tbody>
+        </table>
+      </div>
+    </section>
+
     <section class="card us-watchlist-card full-width-section" id="usWatchlistSection">
       <div class="label">美股指標觀察</div>
       <div class="table-wrap">
@@ -2498,6 +2529,10 @@
     function money(value) {
       if (value === null || value === undefined) return "無資料";
       return `${Number(value || 0).toLocaleString()} 元`;
+    }
+    function moneyUsd(value) {
+      if (value === null || value === undefined) return "無資料";
+      return `USD ${Number(value || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
     }
     function numberText(value, digits = 2) {
       if (value === null || value === undefined) return "無資料";
@@ -3152,6 +3187,8 @@
       const marketOpportunityNews = payload.market_opportunity_news || [];
       const dynamicScan = payload.dynamic_scan || {};
       const usWatchlist = payload.us_watchlist || [];
+      const usPositions = payload.us_positions || [];
+      const usSummary = payload.us_summary || {};
       const marketTrend = payload.market_trend || {};
       const news = payload.news || [];
       const usMarketNews = payload.us_market_news || [];
@@ -3257,6 +3294,7 @@
         : `<div class="empty">最近沒有找到動態掃描候選的可信催化新聞</div>`;
 
       renderSectorWatchlists(sectorWatchlists);
+      renderUsPositions(usPositions, usSummary);
       renderUsWatchlist(usWatchlist);
       renderAllocation(positions);
       drawAllocation(positions);
@@ -3358,6 +3396,36 @@
           </div>
         </div>
       `).join("");
+    }
+    function renderUsPositions(items, summary) {
+      const meta = document.getElementById("usPositionsMeta");
+      if (meta) {
+        const parts = [
+          `匯率 ${numberText(summary?.usd_twd_rate, 4)}`,
+          `持有 ${numberText(summary?.quote_count || items.length, 0)} 檔`,
+          `美股估賣後淨值 ${money(summary?.total_market_value_twd)}`,
+        ];
+        meta.textContent = `${parts.join(" · ")}。成本與現值同時顯示 USD / TWD；TWD 依交易匯率與目前 USD/TWD 估算，不含股息。`;
+      }
+      document.getElementById("usPositionRows").innerHTML = items.length
+        ? items.map((row) => `
+          <tr>
+            <td><strong>${escapeHtml(row.symbol)}</strong></td>
+            <td>${usStockNameLink(row)}</td>
+            <td>${numberText(row.shares, 4)}</td>
+            <td>${moneyUsd(row.average_cost_original ?? row.average_cost)}</td>
+            <td>${moneyUsd(row.latest_close)}<br><small>${usQuoteMeta(row)}</small></td>
+            <td>${moneyUsd(row.cost_original)}</td>
+            <td>${money(row.cost)}</td>
+            <td>${moneyUsd(row.gross_market_value_original)}</td>
+            <td>${money(row.gross_market_value)}</td>
+            <td class="${classFor(row.gross_profit_loss_original)}"><strong>${moneyUsd(row.gross_profit_loss_original)}</strong></td>
+            <td class="${classFor(row.gross_profit_loss)}"><strong>${money(row.gross_profit_loss)}</strong></td>
+            <td class="${classFor(row.profit_loss)}"><strong>${money(row.market_value)}</strong></td>
+            <td>${numberText(row.current_exchange_rate, 4)}</td>
+          </tr>
+        `).join("")
+        : `<tr><td colspan="13" class="empty">目前沒有持有美股資料</td></tr>`;
     }
     function renderUsWatchlist(items) {
       document.getElementById("usWatchlistRows").innerHTML = items.length
