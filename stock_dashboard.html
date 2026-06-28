@@ -245,11 +245,13 @@
       display: none !important;
     }
     body[data-market-page="tw"] [data-page~="tw"],
-    body[data-market-page="us"] [data-page~="us"] {
+    body[data-market-page="us"] [data-page~="us"],
+    body[data-market-page="debug"] [data-page~="debug"] {
       display: block !important;
     }
     body[data-market-page="tw"] .rail-nav a[data-page~="tw"],
-    body[data-market-page="us"] .rail-nav a[data-page~="us"] {
+    body[data-market-page="us"] .rail-nav a[data-page~="us"],
+    body[data-market-page="debug"] .rail-nav a[data-page~="debug"] {
       display: grid !important;
     }
     body[data-market-page="tw"] .kpis[data-page~="tw"],
@@ -270,6 +272,9 @@
       display: grid !important;
     }
     body[data-market-page="us"] .us-page-stack[data-page~="us"] {
+      display: grid !important;
+    }
+    body[data-market-page="debug"] .debug-page-stack[data-page~="debug"] {
       display: grid !important;
     }
     select,
@@ -867,7 +872,8 @@
     .market-trend-card .mini-chart {
       height: 520px;
     }
-    .us-page-stack {
+    .us-page-stack,
+    .debug-page-stack {
       display: grid;
       gap: 14px;
       width: 100%;
@@ -875,7 +881,8 @@
       margin: 0 auto;
       align-items: start;
     }
-    .us-page-stack > section {
+    .us-page-stack > section,
+    .debug-page-stack > section {
       margin-top: 0;
     }
     .us-kpis {
@@ -2117,6 +2124,7 @@
         <div class="page-tabs" aria-label="市場頁面切換">
           <button class="page-tab active" type="button" data-page-button="tw">台股</button>
           <button class="page-tab" type="button" data-page-button="us">美股</button>
+          <button class="page-tab" type="button" data-page-button="debug">除錯</button>
         </div>
         <button class="theme-button" id="railToggleButton" type="button" title="收合左側欄" aria-label="收合左側欄">☰</button>
         <select id="rangeSelect" aria-label="趨勢區間">
@@ -2151,6 +2159,7 @@
             <a href="#usRecordsSection" data-page="us"><span class="nav-icon">≣</span><span>美股紀錄</span><span>US Trades</span></a>
             <a href="#usWatchlistSection" data-page="us"><span class="nav-icon">◎</span><span>美股觀察</span><span>US Watch</span></a>
             <a href="#usNewsSection" data-page="us"><span class="nav-icon">⌕</span><span>美國事件</span><span>US News</span></a>
+            <a href="#debugDashboardSection" data-page="debug"><span class="nav-icon">⚙</span><span>資料除錯</span><span>Debug</span></a>
           </nav>
         </div>
         <div class="rail-section" data-page="tw">
@@ -2384,17 +2393,6 @@
           </div>
         </section>
 
-        <section class="card reconciliation-card">
-          <div class="label">券商成本對帳</div>
-          <div class="note">如果你在持股明細手動修正含費成本，這裡會顯示和系統推導值的差異。</div>
-          <div class="analysis-list" id="reconciliationRows"></div>
-        </section>
-
-        <section class="card data-quality-card">
-          <div class="label">資料品質檢查</div>
-          <div class="analysis-list" id="dataQualityRows"></div>
-        </section>
-
         <section class="card news-card" id="newsSection">
           <div class="label">持股最新新聞</div>
           <div class="news-list" id="newsRows"></div>
@@ -2585,17 +2583,6 @@
       </div>
     </section>
 
-    <section class="card reconciliation-card full-width-section" id="usReconciliationSection">
-      <div class="label">美股券商成本對帳</div>
-      <div class="note">顯示系統依交易紀錄推導的成本、手動覆蓋成本與差異。</div>
-      <div class="analysis-list" id="usReconciliationRows"></div>
-    </section>
-
-    <section class="card data-quality-card full-width-section" id="usDataQualitySection">
-      <div class="label">美股資料品質檢查</div>
-      <div class="analysis-list" id="usDataQualityRows"></div>
-    </section>
-
     <section class="card market-trend-card full-width-section" id="usMarketTrendSection">
       <div class="chart-head">
         <div>
@@ -2647,6 +2634,32 @@
       <div class="note">聚焦可能影響美股大盤、科技股與半導體情緒的近期事件。</div>
       <div class="news-list" id="usMarketNewsRows"></div>
     </section>
+    </div>
+
+    <div class="debug-page-stack" id="debugDashboardSection" data-page="debug">
+      <section class="card reconciliation-card full-width-section" id="debugReconciliationSection" data-page="debug">
+        <div class="label">券商成本對帳</div>
+        <div class="note">開發 / 除錯用。顯示台股持股的系統推導成本、手動覆蓋成本與差異；主頁不再顯示這類稽核資訊。</div>
+        <div class="analysis-list" id="reconciliationRows"></div>
+      </section>
+
+      <section class="card reconciliation-card full-width-section" id="debugUsReconciliationSection" data-page="debug">
+        <div class="label">美股券商成本對帳</div>
+        <div class="note">開發 / 除錯用。顯示美股持股的 USD / TWD 成本對帳與手動覆蓋差異。</div>
+        <div class="analysis-list" id="usReconciliationRows"></div>
+      </section>
+
+      <section class="card data-quality-card full-width-section" id="debugDataQualitySection" data-page="debug">
+        <div class="label">資料品質檢查</div>
+        <div class="note">開發 / 除錯用。列出台股交易紀錄缺股數、缺匯率、賣出超過持股或成本來源異常等問題。</div>
+        <div class="analysis-list" id="dataQualityRows"></div>
+      </section>
+
+      <section class="card data-quality-card full-width-section" id="debugUsDataQualitySection" data-page="debug">
+        <div class="label">美股資料品質檢查</div>
+        <div class="note">開發 / 除錯用。列出美股匯率、原幣金額、TWD 成本與交易欄位的資料一致性檢查。</div>
+        <div class="analysis-list" id="usDataQualityRows"></div>
+      </section>
     </div>
 
         <section class="card error" id="error" hidden></section>
@@ -2780,9 +2793,17 @@
       if (value === null || value === undefined) return "無資料";
       return `${Number(value || 0).toLocaleString()} 元`;
     }
+    function money2(value) {
+      if (value === null || value === undefined) return "無資料";
+      return `${Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} 元`;
+    }
     function moneyUsd(value, digits = 2) {
       if (value === null || value === undefined) return "無資料";
       return `USD ${Number(value || 0).toLocaleString(undefined, { maximumFractionDigits: digits })}`;
+    }
+    function moneyUsd2(value) {
+      if (value === null || value === undefined) return "無資料";
+      return `USD ${Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
     function numberText(value, digits = 2) {
       if (value === null || value === undefined) return "無資料";
@@ -3081,7 +3102,7 @@
       }
     }
     function applyMarketPage(page) {
-      activeMarketPage = page === "us" ? "us" : "tw";
+      activeMarketPage = page === "us" ? "us" : page === "debug" ? "debug" : "tw";
       document.body.dataset.marketPage = activeMarketPage;
       renderMarketSession();
       for (const button of document.querySelectorAll("[data-page-button]")) {
@@ -3105,11 +3126,12 @@
       }
     }
     function initialMarketPage() {
+      if (params.get("market") === "debug") return "debug";
       if (params.get("market") === "us") return "us";
       if (params.get("market") === "tw") return "tw";
       try {
         const saved = localStorage.getItem("stock-dashboard-market-page");
-        if (saved === "us" || saved === "tw") return saved;
+        if (saved === "us" || saved === "tw" || saved === "debug") return saved;
       } catch {
         // Ignore storage failures and use Taiwan page as default.
       }
@@ -3648,12 +3670,12 @@
             <td><strong>${escapeHtml(row.symbol)}</strong></td>
             <td>${escapeHtml(row.display_name || "")}</td>
             <td>${numberText(row.sold_shares, 3)}</td>
-            <td>${money(row.sold_cost)}${row.realized_cost_basis_source === "manual_override" ? `<br><small>手動成本</small>` : ""}</td>
-            <td>${money(row.gross_amount)}</td>
-            <td>${money(row.sell_fee)}</td>
-            <td>${money(row.sell_tax)}</td>
-            <td>${money(row.net_amount)}</td>
-            <td class="${classFor(row.profit_loss)}"><strong>${money(row.profit_loss)}</strong></td>
+            <td>${money2(row.sold_cost)}${row.realized_cost_basis_source === "manual_override" ? `<br><small>手動成本</small>` : ""}</td>
+            <td>${money2(row.gross_amount)}</td>
+            <td>${money2(row.sell_fee)}</td>
+            <td>${money2(row.sell_tax)}</td>
+            <td>${money2(row.net_amount)}${row.realized_proceeds_basis_source === "manual_override" ? `<br><small>手動淨額</small>` : ""}</td>
+            <td class="${classFor(row.profit_loss)}"><strong>${money2(row.profit_loss)}</strong></td>
             <td class="${classFor(row.profit_loss_percent)}"><strong>${percent(row.profit_loss_percent)}</strong></td>
           </tr>
         `).join("")
@@ -3715,13 +3737,13 @@
             <td><strong>${escapeHtml(row.symbol)}</strong></td>
             <td>${escapeHtml(row.display_name || "")}</td>
             <td>${numberText(row.sold_shares, 4)}</td>
-            <td>${moneyUsd(row.sold_cost_original)}</td>
-            <td>${money(row.sold_cost)}${row.realized_cost_basis_source === "manual_override" ? `<br><small>手動成本</small>` : ""}</td>
-            <td>${moneyUsd(row.net_amount_original)}</td>
-            <td>${money(row.net_amount)}</td>
-            <td>${moneyUsd((row.sell_fee_original || 0) + (row.sell_tax_original || 0))}</td>
-            <td class="${classFor(row.profit_loss_original)}"><strong>${moneyUsd(row.profit_loss_original)}</strong></td>
-            <td class="${classFor(row.profit_loss)}"><strong>${money(row.profit_loss)}</strong></td>
+            <td>${moneyUsd2(row.sold_cost_original)}</td>
+            <td>${money2(row.sold_cost)}${row.realized_cost_basis_source === "manual_override" ? `<br><small>手動成本</small>` : ""}</td>
+            <td>${moneyUsd2(row.net_amount_original)}</td>
+            <td>${money2(row.net_amount)}${row.realized_proceeds_basis_source === "manual_override" ? `<br><small>手動淨額</small>` : ""}</td>
+            <td>${moneyUsd2((row.sell_fee_original || 0) + (row.sell_tax_original || 0))}</td>
+            <td class="${classFor(row.profit_loss_original)}"><strong>${moneyUsd2(row.profit_loss_original)}</strong></td>
+            <td class="${classFor(row.profit_loss)}"><strong>${money2(row.profit_loss)}</strong></td>
             <td class="${classFor(row.profit_loss_percent)}"><strong>${percent(row.profit_loss_percent)}</strong></td>
           </tr>
         `).join("")
