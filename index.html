@@ -692,6 +692,93 @@
       font-size: 13px;
       line-height: 1.3;
     }
+    .analysis-section-grid,
+    .roadmap-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+    }
+    .analysis-subpanel,
+    .roadmap-panel {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: color-mix(in srgb, var(--panel-2) 76%, var(--bg) 24%);
+    }
+    .analysis-subpanel h3,
+    .roadmap-panel h3 {
+      margin: 0 0 10px;
+      font-size: 13px;
+      color: var(--text);
+    }
+    .quality-badge,
+    .journal-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 4px 9px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      background: color-mix(in srgb, var(--panel) 72%, transparent);
+      white-space: nowrap;
+    }
+    .quality-badge.positive { color: var(--gain); border-color: color-mix(in srgb, var(--gain) 45%, var(--line)); }
+    .quality-badge.warning { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 45%, var(--line)); }
+    .quality-badge.negative { color: var(--loss); border-color: color-mix(in srgb, var(--loss) 45%, var(--line)); }
+    .journal-action {
+      cursor: pointer;
+      color: var(--accent);
+    }
+    .journal-action:hover {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 12%, transparent);
+    }
+    .target-row,
+    .journal-row,
+    .broker-action-row {
+      display: grid;
+      grid-template-columns: minmax(120px, 1fr) minmax(130px, 1.2fr) minmax(120px, 1fr);
+      gap: 10px;
+      align-items: start;
+      border-top: 1px solid var(--line);
+      padding: 10px 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .target-row:first-child,
+    .journal-row:first-child,
+    .broker-action-row:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+    .target-row strong,
+    .journal-row strong,
+    .broker-action-row strong {
+      display: block;
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .entry-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      border: 1px solid color-mix(in srgb, var(--accent) 46%, var(--line));
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: var(--accent);
+      font-weight: 850;
+      text-decoration: none;
+      background: color-mix(in srgb, var(--accent) 10%, transparent);
+    }
+    .entry-link:hover {
+      background: color-mix(in srgb, var(--accent) 18%, transparent);
+    }
     .dashboard-layout section,
     .dashboard-layout .band-heading,
     .dashboard-layout .sector-watchlist-stack {
@@ -2212,7 +2299,20 @@
 
         <section class="card analysis-card" id="analysisSection" data-page="tw">
           <div class="label">投資分析參考</div>
-          <div class="analysis-list" id="analysisRows"></div>
+          <div class="analysis-section-grid">
+            <div class="analysis-subpanel">
+              <h3>組合總覽</h3>
+              <div class="analysis-list" id="analysisRows"></div>
+            </div>
+            <div class="analysis-subpanel">
+              <h3>持有部位建議</h3>
+              <div class="analysis-list" id="holdingAnalysisRows"></div>
+            </div>
+            <div class="analysis-subpanel">
+              <h3>新買候選建議</h3>
+              <div class="analysis-list" id="newBuyAnalysisRows"></div>
+            </div>
+          </div>
           <div class="note">以上為依日 K、均線、RSI、波動、量能與可信新聞整理的客觀檢視項目，不是買賣建議。</div>
         </section>
 
@@ -2302,6 +2402,10 @@
             <div>
               <div class="compact-legend allocation-legend" id="allocationLegend"></div>
             </div>
+          </div>
+          <div class="roadmap-panel">
+            <h3>目標配置偏離</h3>
+            <div id="allocationTargetRows"></div>
           </div>
         </section>
 
@@ -2637,6 +2741,28 @@
     </div>
 
     <div class="debug-page-stack" id="debugDashboardSection" data-page="debug">
+      <section class="card reconciliation-card full-width-section" id="brokerReconciliationCenter" data-page="debug">
+        <div class="label">券商對帳中心</div>
+        <div class="note">彙整成本差異、資料品質與下一步處理。若券商成本不同，請用持股明細的編輯按鈕寫入私有覆寫表。</div>
+        <div class="roadmap-grid">
+          <div class="roadmap-panel">
+            <h3>下一步動作</h3>
+            <div id="brokerActionRows"></div>
+          </div>
+          <div class="roadmap-panel">
+            <h3>投資輸入入口</h3>
+            <div class="note">買入、賣出、配息、配股、匯率與含費成本建議從手機記帳 Web 表單新增。</div>
+            <a class="entry-link" id="investmentEntryLink" href="#" target="_blank" rel="noopener noreferrer">開啟投資紀錄表單</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="card data-quality-card full-width-section" id="decisionJournalSection" data-page="debug">
+        <div class="label">投資決策日誌</div>
+        <div class="note">按分析或候選標的旁的「記錄判斷」後，會把當下標籤、價格與理由存在這台瀏覽器，不會寫進 GitHub 或 Supabase。</div>
+        <div class="analysis-list" id="decisionJournalRows"></div>
+      </section>
+
       <section class="card reconciliation-card full-width-section" id="debugReconciliationSection" data-page="debug">
         <div class="label">券商成本對帳</div>
         <div class="note">開發 / 除錯用。顯示台股持股的系統推導成本、手動覆蓋成本與差異；主頁不再顯示這類稽核資訊。</div>
@@ -2699,6 +2825,13 @@
     let latestPayload = null;
     let positionEditMap = new Map();
     let activeMarketPage = params.get("market") === "us" ? "us" : "tw";
+    const TARGET_ALLOCATION_POLICY = [
+      { key: "tw_core", label: "台股核心 ETF", target: 40, symbols: ["006208", "00733", "0050", "00692"] },
+      { key: "us_global", label: "美股全球 / 大盤 ETF", target: 30, symbols: ["VT", "VOO", "VTI", "QQQM", "QQQ"] },
+      { key: "growth", label: "科技成長與主題", target: 20, symbols: ["00981A", "00662", "NVDA", "SMH", "SOXQ"] },
+      { key: "cash_defensive", label: "現金 / 防禦資產", target: 10, symbols: [] },
+    ];
+    const DECISION_JOURNAL_KEY = "stock-dashboard-decision-journal-v1";
     const trendHoverState = {
       trendChart: null,
       expandedTrendChart: null,
@@ -2921,6 +3054,161 @@
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#39;");
     }
+    function accountingDashboardUrl() {
+      const query = new URLSearchParams();
+      if (project) query.set("project", project);
+      if (user) query.set("user", user);
+      if (token) query.set("token", token);
+      query.set("entry", "investment");
+      return `https://yeeeson.github.io/accounting-dashboard/?${query}`;
+    }
+    function qualityChecksForSymbol(checks, symbol) {
+      const normalized = String(symbol || "").toUpperCase();
+      return (Array.isArray(checks) ? checks : []).filter((row) =>
+        String(row.symbol || "").toUpperCase() === normalized
+      );
+    }
+    function positionQualityBadge(row, checks = []) {
+      const related = qualityChecksForSymbol(checks, row.symbol);
+      const stale = row.latest_source !== "realtime" && row.latest_source !== "daily_close";
+      const manual = row.cost_basis_source === "manual_override" || row.cost_override;
+      const negative = related.some((item) => item.level === "negative");
+      const warning = related.some((item) => item.level === "warning") || stale;
+      const label = negative
+        ? "需修正"
+        : warning
+          ? "需檢查"
+          : manual
+            ? "手動成本"
+            : "正常";
+      const level = negative ? "negative" : warning ? "warning" : manual ? "info" : "positive";
+      return `<span class="quality-badge ${level}" title="${escapeHtml(related.map((item) => item.title).join("、") || "資料狀態")}">${label}</span>`;
+    }
+    function splitAnalysisRows(analysis, positions, dynamicCandidates) {
+      const heldNeedles = new Set();
+      for (const position of positions || []) {
+        heldNeedles.add(String(position.symbol || "").toUpperCase());
+        heldNeedles.add(String(position.display_name || "").toUpperCase());
+      }
+      const summary = [];
+      const holding = [];
+      const other = [];
+      for (const row of Array.isArray(analysis) ? analysis : []) {
+        if (isSummaryAnalysis(row)) {
+          summary.push(row);
+          continue;
+        }
+        const haystack = `${row.symbol || ""} ${row.title || ""} ${row.detail || ""}`.toUpperCase();
+        const matchesHeld = [...heldNeedles].some((needle) => needle && haystack.includes(needle));
+        (matchesHeld ? holding : other).push(row);
+      }
+      const candidates = (Array.isArray(dynamicCandidates) ? dynamicCandidates : []).slice(0, 5).map((row) => ({
+        level: watchDecision(row).tone === "positive" ? "positive" : "info",
+        title: `${row.display_name || row.symbol}：${watchDecision(row).label}`,
+        status: watchDecision(row).label,
+        symbol: row.symbol,
+        display_name: row.display_name,
+        latest_close: row.latest_close,
+        evidence: reasonText(row.reasons),
+        suggestion: "符合技術面初篩時仍要回頭檢查公司基本面、成交量延續性與可承受報酬風險。",
+        source_basis: ["今日可分批試單候選", "MA / RSI / 量能", "新聞催化交叉檢查"],
+      }));
+      return { summary, holding, newBuy: [...candidates, ...other].slice(0, 8) };
+    }
+    function targetBucketForPosition(row) {
+      const symbol = String(row.symbol || "").toUpperCase();
+      const market = String(row.market || "TW").toUpperCase();
+      for (const bucket of TARGET_ALLOCATION_POLICY) {
+        if (bucket.symbols.includes(symbol)) return bucket;
+      }
+      if (market === "US") return TARGET_ALLOCATION_POLICY.find((bucket) => bucket.key === "us_global");
+      return TARGET_ALLOCATION_POLICY.find((bucket) => bucket.key === "growth");
+    }
+    function renderTargetAllocationRows(twPositions = [], usPositions = []) {
+      const all = [...(twPositions || []), ...(usPositions || [])];
+      const total = all.reduce((sum, row) => sum + Number(row.market_value ?? row.gross_market_value ?? 0), 0);
+      if (!total) return `<div class="empty">目前沒有可用市值，暫時無法比對目標配置。</div>`;
+      const actual = new Map(TARGET_ALLOCATION_POLICY.map((bucket) => [bucket.key, 0]));
+      for (const row of all) {
+        const bucket = targetBucketForPosition(row);
+        if (!bucket) continue;
+        actual.set(bucket.key, (actual.get(bucket.key) || 0) + Number(row.market_value ?? row.gross_market_value ?? 0));
+      }
+      return TARGET_ALLOCATION_POLICY.map((bucket) => {
+        const current = ((actual.get(bucket.key) || 0) / total) * 100;
+        const gap = current - bucket.target;
+        const action = gap < -5 ? "優先補足" : gap > 8 ? "暫停加碼" : "維持節奏";
+        return `
+          <div class="target-row">
+            <div><strong>${escapeHtml(bucket.label)}</strong><span>目標 ${percent(bucket.target)}</span></div>
+            <div><strong>${percent(current)}</strong><span>目前配置</span></div>
+            <div class="${classFor(-gap)}"><strong>${escapeHtml(action)}</strong><span>偏離 ${percent(gap)}</span></div>
+          </div>
+        `;
+      }).join("");
+    }
+    function renderBrokerReconciliationCenter(twPositions = [], usPositions = [], twChecks = [], usChecks = []) {
+      const rows = [...(twPositions || []), ...(usPositions || [])];
+      const checks = [...(twChecks || []), ...(usChecks || [])];
+      const issues = rows
+        .map((row) => {
+          const diff = Number(row.cost_difference || 0);
+          const related = qualityChecksForSymbol(checks, row.symbol);
+          const manual = row.cost_basis_source === "manual_override" || row.cost_override;
+          const needsCost = Math.abs(diff) >= 1 && !manual;
+          const needsData = related.some((item) => item.level === "warning" || item.level === "negative");
+          if (!needsCost && !needsData && !manual) return null;
+          return {
+            row,
+            status: needsCost ? "成本需確認" : needsData ? "資料需檢查" : "已採手動成本",
+            detail: needsCost
+              ? `系統成本與目前採用成本差異 ${money(diff)}，請用券商成本覆寫。`
+              : needsData
+                ? related.map((item) => item.title).join("、")
+                : "目前成本已使用私有覆寫，適合拿來和券商 App 對帳。",
+          };
+        })
+        .filter(Boolean);
+      document.getElementById("investmentEntryLink").href = accountingDashboardUrl();
+      document.getElementById("brokerActionRows").innerHTML = issues.length
+        ? issues.map(({ row, status, detail }) => `
+          <div class="broker-action-row">
+            <div><strong>${escapeHtml(row.symbol)}</strong><span>${escapeHtml(row.display_name || "")}</span></div>
+            <div><strong>${escapeHtml(status)}</strong><span>${escapeHtml(detail)}</span></div>
+            <div><button class="secondary-button cost-edit-button" type="button" data-cost-edit="${escapeHtml(positionEditKey(row.market, row.symbol))}">編輯成本</button></div>
+          </div>
+        `).join("")
+        : `<div class="empty">目前沒有明顯成本或資料品質動作，可以維持既有紀錄方式。</div>`;
+    }
+    function loadDecisionJournal() {
+      try {
+        const rows = JSON.parse(localStorage.getItem(DECISION_JOURNAL_KEY) || "[]");
+        return Array.isArray(rows) ? rows : [];
+      } catch {
+        return [];
+      }
+    }
+    function renderDecisionJournalRows() {
+      const rows = loadDecisionJournal();
+      document.getElementById("decisionJournalRows").innerHTML = rows.length
+        ? rows.slice(0, 12).map((row) => `
+          <div class="journal-row">
+            <div><strong>${escapeHtml(row.symbol || row.name || "投資判斷")}</strong><span>${escapeHtml(row.created_at || "")}</span></div>
+            <div><strong>${escapeHtml(row.label || "觀察")}</strong><span>${escapeHtml(row.reason || "")}</span></div>
+            <div><strong>${escapeHtml(row.price || "無價格")}</strong><span>${escapeHtml(row.source || "dashboard")}</span></div>
+          </div>
+        `).join("")
+        : `<div class="empty">尚未記錄投資判斷。可在分析或候選標的旁按「記錄判斷」。</div>`;
+    }
+    function saveDecisionJournalEntry(entry) {
+      const rows = loadDecisionJournal();
+      rows.unshift({
+        ...entry,
+        created_at: new Date().toLocaleString(),
+      });
+      localStorage.setItem(DECISION_JOURNAL_KEY, JSON.stringify(rows.slice(0, 50)));
+      renderDecisionJournalRows();
+    }
     function renderAnalysisChecks(row) {
       const checks = Array.isArray(row.cross_checks) ? row.cross_checks : [];
       if (!checks.length) return "";
@@ -3000,6 +3288,7 @@
                   ${(suggestions.length ? suggestions : [suggestion]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
                 </ul>
                 ${renderAnalysisSources(row)}
+                <button class="journal-action" type="button" data-decision-log data-decision-symbol="${escapeHtml(row.symbol || "")}" data-decision-name="${title}" data-decision-label="${status}" data-decision-price="${escapeHtml(row.latest_close ?? "")}" data-decision-source="analysis">記錄判斷</button>
               </div>
               ${renderSummarySupport(row, suggestions)}
             </div>
@@ -3016,6 +3305,7 @@
             <div class="analysis-item-text">${evidence}</div>
             <div class="analysis-item-suggestion">${escapeHtml(suggestion)}</div>
             ${renderAnalysisSources(row)}
+            <button class="journal-action" type="button" data-decision-log data-decision-symbol="${escapeHtml(row.symbol || "")}" data-decision-name="${title}" data-decision-label="${status}" data-decision-price="${escapeHtml(row.latest_close ?? "")}" data-decision-source="analysis">記錄判斷</button>
           </div>
           <div class="analysis-evidence">
             ${renderAnalysisChecks(row)}
@@ -3356,6 +3646,7 @@
               ${dynamicDecisionHtml(row)}
               ${row.held ? `<span class="held-badge">已持有</span>` : ""}
             </div>
+            <button class="journal-action" type="button" data-decision-log data-decision-symbol="${escapeHtml(row.symbol || "")}" data-decision-name="${escapeHtml(row.display_name || row.symbol || "")}" data-decision-label="${escapeHtml(watchDecision(row).label)}" data-decision-price="${escapeHtml(row.latest_close ?? "")}" data-decision-source="candidate">記錄判斷</button>
           </div>
           <div class="candidate-cell dynamic-reason" data-label="入選原因">${dynamicReasonHtml(row)}</div>
           <div class="candidate-cell" data-label="最新價">${numberText(row.latest_close, 2)}<br><small>${displayDate(row.latest_date)}</small></div>
@@ -3449,6 +3740,7 @@
               <div class="position-card-title">
                 <strong>${stockNameLink(row)}</strong>
                 <span>${escapeHtml(row.symbol)} · ${numberText(row.shares, 3)} 股</span>
+                ${positionQualityBadge(row, latestPayload?.data_quality_checks || [])}
               </div>
               <span class="position-return ${classFor(row.profit_loss_percent)}">${percent(row.profit_loss_percent)}</span>
             </div>
@@ -3633,8 +3925,15 @@
       warning.hidden = warnings.length === 0;
       warning.textContent = warnings.join("\n");
 
-      document.getElementById("analysisRows").innerHTML = analysis.length
-        ? analysis.map((row) => renderAnalysisItem(row)).join("")
+      const splitAnalysis = splitAnalysisRows(analysis, positions, dynamicCandidates);
+      document.getElementById("holdingAnalysisRows").innerHTML = splitAnalysis.holding.length
+        ? splitAnalysis.holding.map((row) => renderAnalysisItem(row)).join("")
+        : `<div class="empty">目前沒有持有部位建議</div>`;
+      document.getElementById("newBuyAnalysisRows").innerHTML = splitAnalysis.newBuy.length
+        ? splitAnalysis.newBuy.map((row) => renderAnalysisItem(row)).join("")
+        : `<div class="empty">目前沒有新買候選建議</div>`;
+      document.getElementById("analysisRows").innerHTML = splitAnalysis.summary.length
+        ? splitAnalysis.summary.map((row) => renderAnalysisItem(row)).join("")
         : `<div class="empty">目前沒有足夠資料產生投資分析</div>`;
       document.getElementById("usAnalysisRows").innerHTML = usAnalysis.length
         ? usAnalysis.map((row) => renderAnalysisItem(row)).join("")
@@ -3646,7 +3945,7 @@
         ? positions.map((row) => `
           <tr>
             <td><strong>${escapeHtml(row.symbol)}</strong></td>
-            <td>${stockNameLink(row)}</td>
+            <td>${stockNameLink(row)}<br>${positionQualityBadge(row, dataQualityChecks)}</td>
             <td>${numberText(row.shares, 3)}</td>
             <td>${numberText(row.average_cost, 2)}</td>
             <td>${numberText(row.latest_close, 2)}<br><small>${quoteMeta(row)}</small></td>
@@ -3807,6 +4106,9 @@
       renderUsPositions(usPositions, usSummary);
       renderUsWatchlist(usWatchlist);
       renderAllocation(positions);
+      document.getElementById("allocationTargetRows").innerHTML = renderTargetAllocationRows(positions, usPositions);
+      renderBrokerReconciliationCenter(positions, usPositions, dataQualityChecks, usDataQualityChecks);
+      renderDecisionJournalRows();
       drawAllocation(positions);
       renderUsAllocation(usPositions);
       renderMarketTrends(marketTrend);
@@ -4663,6 +4965,22 @@
       if (!button) return;
       const [market, symbol] = String(button.dataset.costEdit || "").split(":");
       editCostOverride(market, symbol);
+    });
+    document.addEventListener("click", (event) => {
+      if (!(event.target instanceof Element)) return;
+      const button = event.target.closest("[data-decision-log]");
+      if (!button) return;
+      const reason = prompt("記錄這次投資判斷的理由：", "");
+      if (reason === null) return;
+      saveDecisionJournalEntry({
+        symbol: button.dataset.decisionSymbol || "",
+        name: button.dataset.decisionName || "",
+        label: button.dataset.decisionLabel || "觀察",
+        price: button.dataset.decisionPrice ? `價格 ${button.dataset.decisionPrice}` : "",
+        reason: reason.trim() || "未填寫理由",
+        source: button.dataset.decisionSource || "dashboard",
+      });
+      applyMarketPage("debug");
     });
     document.getElementById("themeButton").addEventListener("click", () => {
       applyTheme(document.body.classList.contains("light") ? "dark" : "light");
