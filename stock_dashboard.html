@@ -692,7 +692,11 @@
       font-size: 13px;
       line-height: 1.3;
     }
-    .analysis-section-grid,
+    .analysis-section-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
     .roadmap-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -711,6 +715,21 @@
       margin: 0 0 10px;
       font-size: 13px;
       color: var(--text);
+    }
+    .analysis-subpanel .analysis-list {
+      grid-template-columns: 1fr;
+      max-height: none;
+      overflow: visible;
+    }
+    .analysis-subpanel .analysis-item {
+      grid-template-columns: 1fr;
+    }
+    .analysis-subpanel .analysis-item.summary-analysis {
+      grid-template-columns: 1fr;
+    }
+    .analysis-subpanel .analysis-item.summary-analysis .analysis-main {
+      grid-template-columns: 1fr;
+      gap: 12px;
     }
     .quality-badge,
     .journal-action {
@@ -2018,6 +2037,12 @@
       }
       .analysis-check-status {
         white-space: normal;
+      }
+      .target-row,
+      .journal-row,
+      .broker-action-row {
+        grid-template-columns: 1fr;
+        gap: 4px;
       }
     }
     @media (max-width: 760px) {
