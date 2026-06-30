@@ -3109,6 +3109,39 @@
       const level = negative ? "negative" : warning ? "warning" : manual ? "info" : "positive";
       return `<span class="quality-badge ${level}" title="${escapeHtml(related.map((item) => item.title).join("、") || "資料狀態")}">${label}</span>`;
     }
+    function candidateCrossChecks(row) {
+      const technical = row.technical || {};
+      const decision = watchDecision(row);
+      const catalyst = row.catalyst || {};
+      const catalystTone = catalyst.tone || "neutral";
+      const catalystLevel = catalystTone === "risk" ? "warning" : catalystTone === "positive" ? "positive" : "info";
+      const catalystDetail = catalyst.title
+        ? `${catalyst.source || "可信新聞"}：${catalyst.title}`
+        : "尚未抓到明確新聞催化，仍需回查基本面與產業消息。";
+      const isEtf = /^00/i.test(String(row.symbol || ""));
+      return [
+        {
+          label: "技術面",
+          status: decision.label,
+          level: decision.tone === "positive" ? "positive" : "info",
+          detail: reasonText(row.reasons) || `MA20 乖離 ${numberText(technical.ma20_bias, 2)}%，RSI14 ${numberText(technical.rsi14, 2)}，60 日回撤 ${numberText(technical.maxDrawdown60, 2)}%。`,
+        },
+        {
+          label: "外部資料",
+          status: catalyst.label || "待交叉確認",
+          level: catalystLevel,
+          detail: catalystDetail,
+        },
+        {
+          label: "組合角色",
+          status: isEtf ? "ETF 候選" : "個股候選",
+          level: "info",
+          detail: isEtf
+            ? "ETF 仍需確認追蹤指數、費用率、成交量與折溢價。"
+            : "個股需另外確認營收、獲利、產業位置與籌碼風險。",
+        },
+      ];
+    }
     function splitAnalysisRows(analysis, positions, dynamicCandidates) {
       const heldNeedles = new Set();
       for (const position of positions || []) {
@@ -3137,6 +3170,7 @@
         evidence: reasonText(row.reasons),
         suggestion: "符合技術面初篩時仍要回頭檢查公司基本面、成交量延續性與可承受報酬風險。",
         source_basis: ["今日可分批試單候選", "MA / RSI / 量能", "新聞催化交叉檢查"],
+        cross_checks: candidateCrossChecks(row),
       }));
       return { summary, holding, newBuy: [...candidates, ...other].slice(0, 8) };
     }
