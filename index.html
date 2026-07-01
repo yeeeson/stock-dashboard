@@ -760,13 +760,19 @@
     .journal-row,
     .broker-action-row {
       display: grid;
-      grid-template-columns: minmax(120px, 1fr) minmax(130px, 1.2fr) minmax(120px, 1fr);
       gap: 10px;
       align-items: start;
       border-top: 1px solid var(--line);
       padding: 10px 0;
       font-size: 12px;
       color: var(--muted);
+    }
+    .target-row {
+      grid-template-columns: minmax(120px, 1fr) minmax(120px, 1fr) minmax(130px, 1fr) minmax(150px, 1.2fr);
+    }
+    .journal-row,
+    .broker-action-row {
+      grid-template-columns: minmax(120px, 1fr) minmax(130px, 1.2fr) minmax(120px, 1fr);
     }
     .target-row:first-child,
     .journal-row:first-child,
@@ -1740,10 +1746,11 @@
         minmax(66px, .56fr)
         minmax(66px, .56fr)
         minmax(78px, .66fr)
+        minmax(155px, 1.08fr)
         minmax(180px, 1.55fr);
       gap: 8px;
       align-items: center;
-      min-width: 820px;
+      min-width: 980px;
       padding: 11px 13px;
     }
     .dynamic-candidate-head {
@@ -1762,6 +1769,7 @@
     }
     .dynamic-target,
     .dynamic-reason,
+    .dynamic-fundamental,
     .dynamic-catalyst {
       min-width: 0;
     }
@@ -1798,7 +1806,8 @@
       overflow-wrap: anywhere;
     }
     .held-badge,
-    .catalyst-badge {
+    .catalyst-badge,
+    .fundamental-badge {
       display: inline-flex;
       align-items: center;
       min-height: 21px;
@@ -1810,6 +1819,21 @@
       font-size: 10px;
       font-weight: 850;
       white-space: nowrap;
+    }
+    .fundamental-badge.positive {
+      border-color: color-mix(in srgb, var(--positive) 35%, var(--line));
+      background: color-mix(in srgb, var(--positive) 10%, transparent);
+      color: var(--positive);
+    }
+    .fundamental-badge.warning {
+      border-color: color-mix(in srgb, var(--gold) 42%, var(--line));
+      background: color-mix(in srgb, var(--gold) 11%, transparent);
+      color: var(--gold);
+    }
+    .fundamental-badge.info {
+      border-color: var(--line);
+      background: color-mix(in srgb, var(--panel-2) 85%, transparent);
+      color: var(--muted);
     }
     .catalyst-badge.risk {
       border-color: color-mix(in srgb, var(--negative) 35%, var(--line));
@@ -2471,6 +2495,7 @@
               <span>歷史 20 日</span>
               <span>歷史 60 日</span>
               <span>60 日最大回撤</span>
+              <span>基本面初篩</span>
               <span>催化與風險</span>
             </div>
             <div id="dynamicCandidateRows"></div>
@@ -3118,6 +3143,8 @@
       const catalystDetail = catalyst.title
         ? `${catalyst.source || "可信新聞"}：${catalyst.title}`
         : "尚未抓到明確新聞催化，仍需回查基本面與產業消息。";
+      const fundamental = row.fundamental_check || {};
+      const fundamentalLevel = ["positive", "warning", "info"].includes(fundamental.level) ? fundamental.level : "info";
       const isEtf = /^00/i.test(String(row.symbol || ""));
       return [
         {
@@ -3125,6 +3152,12 @@
           status: decision.label,
           level: decision.tone === "positive" ? "positive" : "info",
           detail: reasonText(row.reasons) || `MA20 乖離 ${numberText(technical.ma20_bias, 2)}%，RSI14 ${numberText(technical.rsi14, 2)}，60 日回撤 ${numberText(technical.maxDrawdown60, 2)}%。`,
+        },
+        {
+          label: "基本面",
+          status: fundamental.status || row.fundamental_status || "資料不足",
+          level: fundamentalLevel,
+          detail: fundamental.reason || "月營收資料不足，入手前需補查營收、獲利、估值與公司公告。",
         },
         {
           label: "外部資料",
@@ -3194,14 +3227,23 @@
         actual.set(bucket.key, (actual.get(bucket.key) || 0) + Number(row.market_value ?? row.gross_market_value ?? 0));
       }
       return TARGET_ALLOCATION_POLICY.map((bucket) => {
-        const current = ((actual.get(bucket.key) || 0) / total) * 100;
+        const currentValue = actual.get(bucket.key) || 0;
+        const targetValue = total * bucket.target / 100;
+        const gapAmount = targetValue - currentValue;
+        const current = (currentValue / total) * 100;
         const gap = current - bucket.target;
         const action = gap < -5 ? "優先補足" : gap > 8 ? "暫停加碼" : "維持節奏";
+        const detail = gap < -5
+          ? `距目標約差 ${money(Math.abs(gapAmount))}，下一筆新資金優先補這一類。`
+          : gap > 8
+            ? `已超目標約 ${money(Math.abs(gapAmount))}，新增資金先暫停；若要回到目標，可用未來賣出或新資金稀釋。`
+            : `與目標差距約 ${money(Math.abs(gapAmount))}，可維持既有節奏。`;
         return `
           <div class="target-row">
             <div><strong>${escapeHtml(bucket.label)}</strong><span>目標 ${percent(bucket.target)}</span></div>
-            <div><strong>${percent(current)}</strong><span>目前配置</span></div>
-            <div class="${classFor(-gap)}"><strong>${escapeHtml(action)}</strong><span>偏離 ${percent(gap)}</span></div>
+            <div><strong>${percent(current)}</strong><span>目前市值 ${money(currentValue)}</span></div>
+            <div><strong>目標市值 ${money(targetValue)}</strong><span class="${classFor(gapAmount)}">差額 ${money(gapAmount)}</span></div>
+            <div class="${classFor(-gap)}"><strong>${escapeHtml(action)}</strong><span>${escapeHtml(detail)}</span></div>
           </div>
         `;
       }).join("");
@@ -3675,6 +3717,19 @@
       if (!items.length) return `<span class="muted">技術條件通過，基本面仍需另查。</span>`;
       return `<div class="dynamic-reason-list">${items.map((reason) => `<span class="dynamic-reason-pill">${escapeHtml(reason)}</span>`).join("")}</div>`;
     }
+    function dynamicFundamentalHtml(row) {
+      const check = row.fundamental_check || {};
+      const level = ["positive", "warning", "info"].includes(check.level) ? check.level : "info";
+      const metrics = [];
+      if (check.revenue_yoy !== null && check.revenue_yoy !== undefined) metrics.push(`年增 ${percent(check.revenue_yoy)}`);
+      if (check.revenue_mom !== null && check.revenue_mom !== undefined) metrics.push(`月增 ${percent(check.revenue_mom)}`);
+      if (check.three_month_trend !== null && check.three_month_trend !== undefined) metrics.push(`近 3 月 ${percent(check.three_month_trend)}`);
+      return `
+        <div class="dynamic-catalyst-meta"><span class="fundamental-badge ${escapeHtml(level)}">${escapeHtml(check.status || row.fundamental_status || "資料不足")}</span></div>
+        <small>${escapeHtml(check.latest_month || "月營收待確認")}${metrics.length ? ` · ${escapeHtml(metrics.join(" · "))}` : ""}</small>
+        <small>${escapeHtml(check.reason || "月營收資料不足，入手前需補查獲利、估值與公司公告。")}</small>
+      `;
+    }
     function dynamicCatalystHtml(row) {
       const catalyst = row.catalyst || null;
       if (!catalyst) {
@@ -3714,6 +3769,7 @@
           <div class="candidate-cell ${classFor(row.technical?.return20)}" data-label="歷史 20 日">${percent(row.technical?.return20)}</div>
           <div class="candidate-cell ${classFor(row.technical?.return60)}" data-label="歷史 60 日">${percent(row.technical?.return60)}</div>
           <div class="candidate-cell ${classFor(row.technical?.maxDrawdown60)}" data-label="60 日最大回撤">${percent(row.technical?.maxDrawdown60)}</div>
+          <div class="candidate-cell dynamic-fundamental" data-label="基本面初篩">${dynamicFundamentalHtml(row)}</div>
           <div class="candidate-cell dynamic-catalyst" data-label="催化與風險">${dynamicCatalystHtml(row)}</div>
         </div>
       `).join("");
