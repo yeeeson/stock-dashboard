@@ -2246,6 +2246,226 @@
         padding: 9px 6px;
       }
     }
+
+    /* ════════════════════════════════════════════════════════════════
+       REDESIGN LAYER · 深色專業金融風 (dark professional finance)
+       僅覆蓋視覺樣式，不更動任何 DOM 結構、id、class 行為或 JS 契約。
+       保留 JS 讀取的變數：--panel/--text/--chart-*/--tooltip-*/
+       --marker-stroke/--series-*/--ma-*。放在樣式表最後以層疊覆蓋。
+       ════════════════════════════════════════════════════════════════ */
+
+    /* ── 1. 設計 token：更深邃、沉穩、premium 的深色調 ── */
+    :root {
+      --bg: #0a0e16;
+      --bg-soft: #0e1421;
+      --panel: #131a28;          /* 卡片／圖表底 (JS 讀取為圖表背景) */
+      --panel-2: #1a2233;
+      --line: #232d42;
+      --text: #e7ecf6;
+      --muted: #8a95ab;
+      --positive: #f6465d;       /* 獲利＝紅（台股慣例） */
+      --negative: #22c58b;       /* 虧損＝綠 */
+      --accent: #4d8dff;
+      --accent-2: #8b5cf6;
+      --gold: #e0a94a;
+      --violet: #a78bfa;
+      --shadow: 0 20px 44px rgba(0, 0, 0, 0.5);
+      --chart-grid: rgba(140, 155, 185, 0.12);
+      --chart-axis: #7c8798;
+      --tooltip-bg: rgba(8, 12, 20, 0.96);
+      --tooltip-border: rgba(120, 140, 178, 0.5);
+      --tech-grid: rgba(77, 141, 255, 0.045);
+      --tech-grid-strong: rgba(56, 189, 248, 0.07);
+      --tech-sheen: rgba(77, 141, 255, 0.09);
+      --tech-corner: rgba(77, 141, 255, 0.30);
+      --warning-soft: rgba(224, 169, 74, 0.13);
+      --positive-soft: rgba(246, 70, 93, 0.13);
+      --negative-soft: rgba(34, 197, 139, 0.13);
+      --gain: var(--positive);
+      --loss: var(--negative);
+      --warn: var(--gold);
+      --radius: 14px;
+      scrollbar-color: color-mix(in srgb, var(--line) 70%, var(--muted)) transparent;
+      scrollbar-width: thin;
+    }
+    body.light {
+      --bg: #eef1f7;
+      --bg-soft: #e7ecf4;
+      --panel: #ffffff;
+      --panel-2: #f4f7fb;
+      --line: #d6deec;
+      --text: #16202e;
+      --muted: #5c6b82;
+      --positive: #d1263a;
+      --negative: #0f9d6b;
+      --accent: #2f6bff;
+      --accent-2: #7c3aed;
+      --gold: #b7791f;
+      --shadow: 0 16px 34px rgba(23, 32, 42, 0.10);
+      --chart-grid: rgba(100, 116, 139, 0.22);
+      --chart-axis: #667085;
+      --tooltip-bg: rgba(23, 32, 42, 0.95);
+      --tooltip-border: rgba(255, 255, 255, 0.86);
+      --warning-soft: rgba(183, 121, 31, 0.12);
+      --positive-soft: rgba(209, 38, 58, 0.10);
+      --negative-soft: rgba(15, 157, 107, 0.10);
+      --gain: var(--positive);
+      --loss: var(--negative);
+      --warn: var(--gold);
+    }
+
+    /* ── 2. 全域捲軸（premium 細捲軸） ── */
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb {
+      background: color-mix(in srgb, var(--line) 82%, var(--muted));
+      border-radius: 999px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: color-mix(in srgb, var(--accent) 40%, var(--line));
+      background-clip: padding-box;
+    }
+
+    /* ── 3. 數字等寬對齊（金融介面關鍵） ── */
+    .value, .kpis .value, th, td,
+    .position-metric strong, .position-return, .position-card-title strong,
+    .watchlist-price, .watchlist-symbol,
+    .market-index-value, .market-index-value small,
+    .allocation-value, .allocation-value span, .allocation-metric strong,
+    .rail-item span, .rail-item strong,
+    .analysis-support-card strong {
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum" 1, "cv01" 1;
+    }
+
+    /* ── 4. 背景：收斂原本的科技格線，改為乾淨微光暈 ── */
+    .app-shell::before {
+      inset: 0;
+      background:
+        radial-gradient(120% 68% at 82% -12%, color-mix(in srgb, var(--accent) 11%, transparent), transparent 58%),
+        radial-gradient(90% 60% at 8% 4%, color-mix(in srgb, var(--accent-2) 7%, transparent), transparent 60%);
+      background-size: auto;
+      mask-image: none;
+      opacity: 1;
+    }
+
+    /* ── 5. 卡片：移除角框雜訊、加大圓角、更沉穩的立體感 ── */
+    .card {
+      border-radius: var(--radius);
+      background: var(--panel);
+      border-color: var(--line);
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.02), 0 14px 34px rgba(0, 0, 0, 0.34);
+    }
+    .card::after { display: none; }               /* 拿掉右上角科技框 */
+    .card::before {
+      height: 1px;
+      opacity: 0.5;
+      background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent) 55%, transparent) 30%, color-mix(in srgb, var(--accent-2) 45%, transparent) 70%, transparent);
+    }
+    .side-column .card {
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
+    }
+
+    /* ── 6. KPI 卡：乾淨層次、清楚的標籤/數值階層 ── */
+    .kpis .card {
+      background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 6%, var(--panel)), var(--panel) 62%);
+    }
+    .kpis .label { color: var(--muted); font-size: 12.5px; font-weight: 750; }
+    .kpis .label::before { height: 12px; }
+    .value { font-size: 27px; letter-spacing: -0.02em; font-weight: 800; }
+    .kpis .value { font-size: 26px; }
+
+    /* ── 7. 頁首：毛玻璃、精修分隔光 ── */
+    .app-header {
+      background: color-mix(in srgb, var(--panel) 86%, #000 14%);
+      backdrop-filter: blur(10px) saturate(1.1);
+      border-bottom-color: color-mix(in srgb, var(--line) 90%, transparent);
+    }
+    .app-header::after { opacity: 0.4; }
+    h1 { font-weight: 800; letter-spacing: -0.01em; }
+
+    /* ── 8. 分頁 / 按鈕：更扁平、俐落 ── */
+    .page-tabs {
+      background: color-mix(in srgb, var(--bg-soft) 82%, var(--panel));
+      border-color: var(--line);
+    }
+    .page-tab.active {
+      background: var(--accent);
+      box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 30%, transparent);
+    }
+    button {
+      background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 94%, #fff 6%), var(--accent));
+      border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
+      box-shadow: 0 8px 18px color-mix(in srgb, var(--accent) 22%, transparent);
+    }
+    .theme-button, select {
+      background: color-mix(in srgb, var(--panel-2) 84%, var(--bg));
+    }
+
+    /* ── 9. 左側導覽欄 ── */
+    .left-rail {
+      background: var(--bg-soft);
+      border-right-color: var(--line);
+      box-shadow: inset -1px 0 0 color-mix(in srgb, var(--accent) 8%, transparent);
+    }
+    .rail-nav a:hover, .rail-item:hover {
+      background: color-mix(in srgb, var(--accent) 12%, var(--panel-2));
+      color: var(--text);
+    }
+
+    /* ── 10. 表格：黏性表頭 + 斑馬紋 + 細緻邊框（金融表格質感） ── */
+    th {
+      background: var(--bg-soft);
+      color: var(--muted);
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      border-bottom: 1px solid var(--line);
+    }
+    th, td { border-bottom-color: color-mix(in srgb, var(--line) 62%, transparent); }
+    tbody tr:nth-child(even) { background: color-mix(in srgb, var(--panel-2) 32%, transparent); }
+    tbody tr:hover { background: color-mix(in srgb, var(--accent) 9%, transparent); }
+
+    /* ── 11. 修正「淺色壓深色」的硬碼元件，改用語意 token ── */
+    .level-pill {
+      background: color-mix(in srgb, var(--accent) 16%, var(--panel));
+      color: var(--accent);
+    }
+    .level-pill.warning { background: var(--warning-soft); color: var(--gold); }
+    .level-pill.positive { background: var(--positive-soft); color: var(--positive); }
+    .level-pill.negative { background: var(--negative-soft); color: var(--negative); }
+    .analysis-check-status.warning { color: var(--gold); }
+    .alert-box {
+      background: var(--warning-soft);
+      border-color: color-mix(in srgb, var(--gold) 40%, var(--line));
+      color: color-mix(in srgb, var(--gold) 78%, var(--text));
+    }
+    .error { color: color-mix(in srgb, var(--positive) 82%, var(--text)); }
+    .modal { background: rgba(4, 7, 13, 0.82); backdrop-filter: blur(5px); }
+    .modal-close {
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+    .modal-close:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── 12. 小圓角統整：讓 8px 圓角跟隨新的 14px 語彙更一致 ── */
+    .analysis-item, .position-card, .watchlist-tile, .analysis-subpanel,
+    .roadmap-panel, .analysis-support, .dynamic-candidate-table {
+      border-radius: 11px;
+    }
+
+    /* ── 13. 動態候選表頭黏性 ── */
+    .dynamic-candidate-head {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
   </style>
 </head>
 <body data-market-page="tw">
